@@ -29,7 +29,10 @@ def sign_in(request):
     user = auth.authenticate(request, email=email, password=password)
     if user is not None:
         auth.login(request, user)
-    return HttpResponse('200')
+        return HttpResponse('200')
+    else:
+        return HttpResponse('404')
+    
 
 def current_user(request):
     if not request.user.is_authenticated:
