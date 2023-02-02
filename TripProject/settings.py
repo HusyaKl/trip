@@ -25,7 +25,10 @@ SECRET_KEY = 'django-insecure-#$8)#mb_h0bj_nwvex=mob7gu1ake-7^%nwkdg&+8&1+h$&ulo
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "192.168.0.197",
+]
+
 
 
 # Application definition
@@ -40,11 +43,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'recomendation',
+    'user',
+    "corsheaders",
+    
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -72,7 +79,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'TripProject.wsgi.application'
 
-
+CSRF_TRUSTED_ORIGINS = ['http://*192.168.0.197']
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -88,12 +95,12 @@ DATABASES = {
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
+   {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
-    {
+   {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
+   },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
@@ -114,11 +121,14 @@ USE_I18N = True
 
 USE_TZ = True
 
+AUTH_USER_MODEL = 'user.Account'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
