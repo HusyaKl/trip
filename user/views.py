@@ -32,7 +32,6 @@ def sign_in(request):
         return HttpResponse('200')
     else:
         return HttpResponse('404')
-    
 
 def current_user(request):
     if not request.user.is_authenticated:
@@ -42,6 +41,11 @@ def current_user(request):
     return JsonResponse({
         'username': user.username
     })
+@csrf_exempt
+def logout(request):
+    auth.logout(request)
+    return HttpResponse('200')
+
 @csrf_exempt
 def csrftoken(request):
     if request.POST.get('key') == 'MdEy9qM)<?HFHSE?``9h}d1)$AbyQSU%AP]~I%+C>wKS^kkPN%,@S^PDlhoKF&B':
