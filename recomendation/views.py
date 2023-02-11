@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from rest_framework import viewsets
 from django.http import HttpResponse, JsonResponse
 import json
 from joblib import load

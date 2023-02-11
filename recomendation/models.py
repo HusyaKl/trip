@@ -4,18 +4,19 @@ from user.models import Account
 
 class Place(models.Model):
     CATEGORIES_CHOISES = [
-        ('coffeeshop', 'Кофейня'),
+        ('coffee_shop', 'Кофейня'),
         ('bar', 'Бар'),
         ('restaurant', 'Ресторан'),
         ('museum', 'Музей'),
         ('landmark', 'Достопримечательность')
     ]
 
-    category = models.CharField(max_length=10, choices=CATEGORIES_CHOISES)
+    category = models.CharField(max_length=20, choices=CATEGORIES_CHOISES)
     name = models.CharField(max_length=30)
     description = models.TextField()
     metrostation = models.CharField(max_length=100)
     address = models.CharField(max_length=255)
+    coordinates = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name

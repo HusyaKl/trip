@@ -2,25 +2,17 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import redirect
 from markupsafe import re
 from .models import Account
-from .serializers import AccountSerializer
-from rest_framework import viewsets
 from django.contrib import auth
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.authtoken.views import Token
 import django
 
 
-class AccountView(viewsets.ModelViewSet):
-    queryset = Account.objects.all()
-    serializer_class = AccountSerializer
 
 def create_user(request):
     email = request.POST['email']
     username = request.POST['username']
     password = request.POST['password']
-    user = Account.objects.create_user(email, username, password)
-    Token.objects.create(user=user)
+    Account.objects.create_user(email, username, password)
     return HttpResponse('200')
 
 def sign_in(request):
