@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-#$8)#mb_h0bj_nwvex=mob7gu1ake-7^%nwkdg&+8&1+h$&ulo
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "192.168.0.197",
+    '*'
 ]
 
 
@@ -48,7 +48,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
