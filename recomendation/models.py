@@ -17,7 +17,7 @@ class Place(models.Model):
     metrostation = models.CharField(max_length=100)
     address = models.CharField(max_length=255)
     coordinates = models.CharField(max_length=50)
-    url = models.CharField(max_length=100)
+    url = models.CharField(max_length=100, default='')
 
     def __str__(self):
         return self.name
@@ -48,7 +48,7 @@ class Review(models.Model):
     username = models.ForeignKey(Account, on_delete=models.CASCADE)
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
     mark = models.SmallIntegerField(choices=MARKS)
-    body = models.TextField()
+    body = models.TextField(default='')
 
     def __str__(self):
         return self.username, self.place
