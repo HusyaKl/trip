@@ -380,99 +380,17 @@ def trip_forming(metro):
       s_p = sorted(s_p, key=lambda x: x[1])
       start_place = s_p[0]
       address = f'метро+{metro}/'
-      if start_place in near_places_1:
-        near_places_2 = sorted(near_places_2, key=lambda x: x[1], reverse=True)
-        near_places_4 = sorted(near_places_4, key=lambda x: x[1], reverse=True)
-        if near_places_1 != []:
+
+
+      if near_places_1 != []:
           end = 1
-          for i in near_places_1:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_2 != []:
+      if near_places_2 != []:
           end = 2
-          for i in near_places_2:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_3 != []:
+      if near_places_3 != []:
           end = 3
-          for i in near_places_3:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_4 != []:
+      if near_places_4 != []:
           end = 4
-          for i in near_places_4:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-      if start_place in near_places_2:
-        near_places_3 = sorted(near_places_3, key=lambda x: x[1], reverse=True)
-        near_places_1 = sorted(near_places_1, key=lambda x: x[1], reverse=True)
-        if near_places_2 != []:
-          end = 2
-          for i in near_places_2:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_3 != []:
-          end = 3
-          for i in near_places_3:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_4 != []:
-          end = 4
-          for i in near_places_4:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_1 != []:
-          end = 1
-          for i in near_places_1:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-      if start_place in near_places_3:
-        near_places_4 = sorted(near_places_4, key=lambda x: x[1], reverse=True)
-        near_places_2 = sorted(near_places_2, key=lambda x: x[1], reverse=True)
-        if near_places_3 != []:
-          end = 3
-          for i in near_places_3:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_4 != []:
-          end = 4
-          for i in near_places_4:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_1 != []:
-          end = 1
-          for i in near_places_1:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_2 != []:
-          end = 2
-          for i in near_places_2:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-      if start_place in near_places_4:
-        near_places_1 = sorted(near_places_1, key=lambda x: x[1], reverse=True)
-        near_places_3 = sorted(near_places_3, key=lambda x: x[1], reverse=True)
-        if near_places_4 != []:
-          end = 4
-          for i in near_places_4:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_1 != []:
-          end = 1
-          for i in near_places_1:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_2 != []:
-          end = 2
-          for i in near_places_2:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-        if near_places_3 != []:
-          end = 3
-          for i in near_places_3:
-            address += i[0].address.replace(' ', '+')
-            address += '/'
-  
+
       if end==1:
         x = split_coordinates(near_places_1[len(near_places_1)-1][0].coordinates)[0]
         y = split_coordinates(near_places_1[len(near_places_1)-1][0].coordinates)[1]
@@ -487,6 +405,192 @@ def trip_forming(metro):
         y = split_coordinates(near_places_4[len(near_places_4)-1][0].coordinates)[1]
       
       finish_station = near_metrostations(stations, x, y)[0][0]
+      finish_station = coordinates_of_station(finish_station, stations)
+
+      near_places_1_finish = []
+      near_places_2_finish = []
+      near_places_3_finish = []
+      near_places_4_finish = []
+
+      if end==1:
+        for i in range(len(near_places_1)):
+          x, y = split_coordinates(near_places_1[i][0].coordinates)
+          km = haversine(x, y, finish_station['lat'], finish_station['lng'])
+          near_place = (near_places_1[i][0], km)
+          near_places_1_finish.append(near_place)
+      
+        near_places_1_finish = sorted(near_places_1, key=lambda x: x[1], reverse=True)
+        
+      if end==2:
+        for i in range(len(near_places_2)):
+          x, y = split_coordinates(near_places_2[i][0].coordinates)
+          km = haversine(x, y, finish_station['lat'], finish_station['lng'])
+          near_place = (near_places_2[i][0], km)
+          near_places_2_finish.append(near_place)
+      
+        near_places_2_finish = sorted(near_places_2, key=lambda x: x[1], reverse=True)
+      if end==3:
+        for i in range(len(near_places_3)):
+          x, y = split_coordinates(near_places_3[i][0].coordinates)
+          km = haversine(x, y, finish_station['lat'], finish_station['lng'])
+          near_place = (near_places_3[i][0], km)
+          near_places_3_finish.append(near_place)
+      
+        near_places_3_finish = sorted(near_places_1, key=lambda x: x[1], reverse=True)
+      if end==4:
+        for i in range(len(near_places_4)):
+          x, y = split_coordinates(near_places_4[i][0].coordinates)
+          km = haversine(x, y, finish_station['lat'], finish_station['lng'])
+          near_place = (near_places_4[i][0], km)
+          near_places_4_finish.append(near_place)
+      
+        near_places_4_finish = sorted(near_places_1, key=lambda x: x[1], reverse=True)
+
+      if start_place in near_places_1:
+        near_places_2 = sorted(near_places_2, key=lambda x: x[1], reverse=True)
+        near_places_4 = sorted(near_places_4, key=lambda x: x[1], reverse=True)
+        if near_places_1 != [] and end!=1:
+          for i in near_places_1:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 1:
+          for i in near_places_1_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_2 != [] and end!=2:
+          for i in near_places_2:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 2:
+          for i in near_places_2_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_3 != [] and end!=3:
+          for i in near_places_3:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 3:
+          for i in near_places_3_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_4 != [] and end!=4:
+          for i in near_places_4:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 4:
+          for i in near_places_4_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+
+      if start_place in near_places_2:
+        near_places_3 = sorted(near_places_3, key=lambda x: x[1], reverse=True)
+        near_places_1 = sorted(near_places_1, key=lambda x: x[1], reverse=True)
+        if near_places_2 != [] and end!=2:
+          for i in near_places_2:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 2:
+          for i in near_places_2_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_3 != [] and end!=3:
+          for i in near_places_3:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 3:
+          for i in near_places_3_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_4 != [] and end!=4:
+          for i in near_places_4:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 4:
+          for i in near_places_4_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_1 != [] and end!=1:
+          for i in near_places_1:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 1:
+          for i in near_places_1_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+
+      if start_place in near_places_3:
+        near_places_4 = sorted(near_places_4, key=lambda x: x[1], reverse=True)
+        near_places_2 = sorted(near_places_2, key=lambda x: x[1], reverse=True)
+        if near_places_3 != [] and end!=3:
+          for i in near_places_3:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 3:
+          for i in near_places_3_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_4 != [] and end!=4:
+          for i in near_places_4:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 4:
+          for i in near_places_4_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_1 != [] and end!=1:
+          for i in near_places_1:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 1:
+          for i in near_places_1_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_2 != [] and end!=2:
+          for i in near_places_2:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 2:
+          for i in near_places_2_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+
+      if start_place in near_places_4:
+        near_places_1 = sorted(near_places_1, key=lambda x: x[1], reverse=True)
+        near_places_3 = sorted(near_places_3, key=lambda x: x[1], reverse=True)
+        if near_places_4 != [] and end!=4:
+          for i in near_places_4:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 4:
+          for i in near_places_4_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_1 != [] and end!=1:
+          for i in near_places_1:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 1:
+          for i in near_places_1_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_2 != [] and end!=2:
+          for i in near_places_2:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 2:
+          for i in near_places_2_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        if near_places_3 != [] and end!=3:
+          for i in near_places_3:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+        elif end == 3:
+          for i in near_places_3_finish:
+            address += i[0].address.replace(' ', '+')
+            address += '/'
+  
+
       address += f'метро+{finish_station}/'  
       
       url_to_maps = f'https://www.google.com/maps/dir/{address}'
@@ -504,6 +608,8 @@ def split_coordinates(my_str):
     coordinates = [float(i) for i in t]
     coordinates = tuple(coordinates)
     return(coordinates)
+
+
 
 
 

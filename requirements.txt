@@ -6,3 +6,4 @@ scikit-learn
 jwt
 django
 progress
+markupsafe
