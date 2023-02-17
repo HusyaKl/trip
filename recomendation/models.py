@@ -18,6 +18,7 @@ class Place(models.Model):
     address = models.CharField(max_length=255)
     coordinates = models.CharField(max_length=50)
     url = models.CharField(max_length=100, default='')
+    image = models.CharField(max_length=255, default='')
 
     def __str__(self):
         return self.name
