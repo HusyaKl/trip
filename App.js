@@ -71,33 +71,44 @@ function App() {
             ...Styles, title: "Обязательно посетите"
           }}
         />
-         <Stack.Screen 
-            name = "Slider" 
-            component = {Slider} 
-            options={{...Styles, 
-                      title: "AK",
-                      headerRight: () => (
-                        <TouchableOpacity
-                          title="ADD"
-                          onPress={() => navigation.navigate("Settings")}
-                        ><Icon style={{marginRight: 20}} name="add-location-alt"/></TouchableOpacity>
-                      ),
-                      headerLeft: () => (
-                        <TouchableOpacity
-                          title="LK"
-                          onPress={() => navigation.navigate("Profile")}
-                        ><Icon style={{marginLeft: 20, fontSize: 24}} name="person"/></TouchableOpacity>
-                      ),}} />
-         <Stack.Screen name = "Bars" component = {Bars} options={{...Styles, title: "Обязательно посетите"}} />
-         <Stack.Screen name = "Rests" component = {Rests} options={{...Styles, title: "Обязательно посетите"}} />
-         <Stack.Screen name = "Museums" component = {Museums} options={{...Styles, title: "Обязательно посетите"}} />
-         <Stack.Screen name = "Settings" component = {Settings} options={{...Styles, title: "Параметры маршрута"}} />
-         <Stack.Screen name = "Place" component = {Place} options={{...Styles, title: "Информация"}} />
-         <Stack.Screen name = "Profile" component = {Profile} options={{...Styles, title: "Ваш профиль"}} />
-         <Stack.Screen name = "Login" component = {Login} options={{...Styles, title: "", headerLeft: () => (<Text>   </Text>)}} />
-         <Stack.Screen name = "SignUp" component = {SignUp} options={{...Styles, title: ""}} />
-         <Stack.Screen name = "Trip" component = {Trip} options={{...Styles, title: "Состав маршрута"}} />
-       </Stack.Navigator>
+        <Stack.Screen
+          name="Slider"
+          component={Slider}
+          options={{
+            ...Styles,
+            title: "AK",
+            headerRight: () => {
+              const navigation = useNavigation();
+              return (
+                <TouchableOpacity
+                  title="ADD"
+                  onPress={() => navigation.navigate("Settings")}
+                >
+                  <Icon style={{ marginRight: 20 }} name="add-location-alt" />
+                </TouchableOpacity>
+              );
+            },
+            headerLeft: () => (
+              <TouchableOpacity
+                title="LK"
+                onPress={() => navigation.navigate("Profile")}
+              >
+                <Icon style={{ marginLeft: 20, fontSize: 24 }} name="person" />
+              </TouchableOpacity>
+            ),
+          }}
+        />
+
+        <Stack.Screen name="Bars" component={Bars} options={{ ...Styles, title: "Обязательно посетите" }} />
+        <Stack.Screen name="Rests" component={Rests} options={{ ...Styles, title: "Обязательно посетите" }} />
+        <Stack.Screen name="Museums" component={Museums} options={{ ...Styles, title: "Обязательно посетите" }} />
+        <Stack.Screen name="Settings" component={Settings} options={{ ...Styles, title: "Параметры маршрута" }} />
+        <Stack.Screen name="Place" component={Place} options={{ ...Styles, title: "Информация" }} />
+        <Stack.Screen name="Profile" component={Profile} options={{ ...Styles, title: "Ваш профиль" }} />
+        <Stack.Screen name="Login" component={Login} options={{ ...Styles, title: "", headerLeft: () => (<Text>   </Text>) }} />
+        <Stack.Screen name="SignUp" component={SignUp} options={{ ...Styles, title: "" }} />
+        <Stack.Screen name="Trip" component={Trip} options={{ ...Styles, title: "Состав маршрута" }} />
+      </Stack.Navigator>
     </View>
 
   );
