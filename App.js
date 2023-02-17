@@ -1,12 +1,12 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
-import {StyleSheet,View, TouchableOpacity, Text} from "react-native";
+import { StyleSheet, View, TouchableOpacity, Text } from "react-native";
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback } from 'react';
-import {NavigationContainer, useNavigation} from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from "@react-navigation/stack";
-import {NativeModules} from 'react-native';
+import { NativeModules } from 'react-native';
 import Login from './Pages/Login'
 import Home from './Pages/Home'
 import CoffeeShops from './Pages/CoffeeShopsList'
@@ -32,12 +32,12 @@ const Stack = createStackNavigator()
 const Styles = {
   title: " ",
   headerStyle: {
-    backgroundColor: "#618889" 
+    backgroundColor: "#618889"
   }
 }
 
 
-function App() {  
+function App() {
 
   const [fontsLoaded] = useFonts({
     'Husya': require('./assets/fonts/Bahnschrift400.ttf'),
@@ -53,23 +53,22 @@ function App() {
     return null;
   };
 
-const navigation = useNavigation();
-
 
   return (
     <View style={styles.container} onLayout={onLayoutRootView}>
-       <Stack.Navigator >
-         <Stack.Screen 
-          name = "Home" 
-          component = {Home} 
+      <Stack.Navigator >
+        <Stack.Screen
+          name="Home"
+          component={Home}
           options={{
             ...Styles,
-            
-          }}/>
-         <Stack.Screen 
-          name = "CoffeeShops" 
-          component = {CoffeeShops} 
-          options={{...Styles, title: "Обязательно посетите"
+
+          }} />
+        <Stack.Screen
+          name="CoffeeShops"
+          component={CoffeeShops}
+          options={{
+            ...Styles, title: "Обязательно посетите"
           }}
         />
          <Stack.Screen 
@@ -100,14 +99,14 @@ const navigation = useNavigation();
          <Stack.Screen name = "Trip" component = {Trip} options={{...Styles, title: "Состав маршрута"}} />
        </Stack.Navigator>
     </View>
-      
+
   );
 }
 
-export default() => {
+export default () => {
   return (
     <NavigationContainer>
-      <App/>
+      <App />
     </NavigationContainer>
   )
 }
@@ -119,6 +118,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   }
 });
-  
 
-  
+
+
