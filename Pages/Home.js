@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import React from 'react';
 
 function Home(props) {
-  const [res, setRes] = useState(false);
+  const [res, setRes] = useState('false');
 
   useEffect(() => {
     fetch('http://192.168.0.197:8000/api/current_user/', {
@@ -16,10 +16,10 @@ function Home(props) {
       const result = data['username']
       console.log(result)
       if (result != false) {
-        data = true
+        data = 'r'
       }
       else {
-        data = false
+        data = 'n'
       }
       setRes(data)
     })
@@ -27,9 +27,11 @@ function Home(props) {
   }, []);
 
   useEffect(() => {
-    if (res) {
+    console.log(res)
+    if (res == 'r') {
       props.navigation.navigate("Slider");
-    } else {
+    } 
+    if (res == 'n'){
       props.navigation.navigate("Login");
     }
   }, [res, props.navigation]);

@@ -88,14 +88,18 @@ function App() {
                 </TouchableOpacity>
               );
             },
-            headerLeft: () => (
-              <TouchableOpacity
-                title="LK"
-                onPress={() => navigation.navigate("Profile")}
-              >
-                <Icon style={{ marginLeft: 20, fontSize: 24 }} name="person" />
-              </TouchableOpacity>
-            ),
+            headerLeft: () => 
+            {
+              const navigation = useNavigation();
+              return (
+                <TouchableOpacity
+                  title="LK"
+                  onPress={() => navigation.navigate("Profile")}
+                >
+                  <Icon style={{ marginLeft: 20, fontSize: 24 }} name="person" />
+                </TouchableOpacity>
+              )
+            }
           }}
         />
 
