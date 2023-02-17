@@ -18,6 +18,7 @@ function CoffeeShops(props) {
         .then(data => {
           data = JSON.parse(data)
           setData(data)
+          console.log(data)
   
         })
         .catch(error => console.log(error))
@@ -34,7 +35,7 @@ function CoffeeShops(props) {
       return(
           <Card style={styles.card} onPress ={() => clickedItem(item)}>
               <Image source={{uri: item.image} }  style={{ width: 100, height: 100, marginTop: 10, borderRadius: 10}}/>
-              <Text style={{color: "#eaf5db", fontFamily: "Husya", textAlign: 'center', marginTop: "2%", fontSize: 16, width: 140}}>{item.title}</Text>
+              <Text style={{color: "#eaf5db", fontFamily: "Husya", textAlign: 'center', marginTop: "2%", fontSize: 16, width: 140}}>{item.name}</Text>
           </Card>
       ); 
     }

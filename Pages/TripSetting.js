@@ -3,11 +3,12 @@ import { StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {Card} from 'react-native-paper'
 import { CheckBox } from 'react-native-elements';
 import {AutocompleteDropdown } from 'react-native-autocomplete-dropdown'
-import { toggle } from 'cli-spinners';
+import { useNavigation } from '@react-navigation/native';
 
 
 function Setting() {
     const [data, setData] = useState([{title: "First"}])
+    const navigation = useNavigation()
     useEffect(() => {
         fetch('https://api.hh.ru/metro/1', {
           method: "GET"
@@ -29,15 +30,40 @@ function Setting() {
         })
         .catch(error => console.log(error))
     }, [])
+    const [MyUrl, setMyUrl] = useState([{title: "First"}])
+    const [MyData, setMyData] = useState([{title: "First"}])
+    const SettingFunc = () => {
+      let formData = new FormData();
+          formData.append('check1', check1);
+          formData.append('check2', check2);
+          formData.append('check3', check3);
+          formData.append('check4', check4);
+          formData.append('check5', check5);
+          formData.append('metro', metro);
+          fetch('http://192.168.0.197:8000/api/analise/', {
+              method: "POST",
+              
+              body: formData
+          })
+          .then(resp => resp.text())
+          .then(data => {
+              data = JSON.parse(data)
+              setMyData(data)
+              
+              navigation.navigate('Trip', {data})
+              
 
-
-
+          })
+          .catch(error => console.log(error))
+          
+        }
 
     const [check1, setChecked1] = useState(false);
     const [check2, setChecked2] = useState(false);
     const [check3, setChecked3] = useState(false);
     const [check4, setChecked4] = useState(false);
     const [check5, setChecked5] = useState(false);
+    const [metro, setMetro] = useState('');
 
     return (
             <View style={styles.container}>
@@ -47,7 +73,9 @@ function Setting() {
                   <AutocompleteDropdown
                     clearOnFocus={false}
                     initialValue={{id: '1'}}
-                    dataSet={data}/>
+                    dataSet={data}
+                    onSelectItem={item => item && setMetro(item.title)}/>
+                    
                   <Text style={styles.settingText}>Выберите интересующие категории мест</Text>
                   <CheckBox 
                     left
@@ -79,10 +107,12 @@ function Setting() {
                     onPress={() => setChecked5(!check5)}
                     title="Прогулка"
                   />
-                <TouchableOpacity style={styles.loginBtn}
-                  name="Save">
+                <TouchableOpacity style={styles.loginBtn} onPress = {() => SettingFunc()}
+                  name="Save"
+                  >
                   <Text style={styles.BtnTxt} >Подобрать маршрут</Text>
                   </TouchableOpacity>
+                
                 </Card>
             </View>
 

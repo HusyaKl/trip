@@ -2,7 +2,6 @@
 import React, {useState, useEffect} from "react";
 import { TouchableOpacity } from "react-native";
 import {View, Image, useWindowDimensions, StyleSheet, Text, Dimensions, ImageBackground, ScrollView} from 'react-native'
-import { openMap, createOpenLink } from "react-native-open-maps";
 import { Button } from "react-native-paper";
 import Login from "./Login";
 

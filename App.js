@@ -19,7 +19,7 @@ import Place from './Pages/Place'
 import Profile from "./Pages/Userprofile";
 import Slider from "./Pages/Slider"
 import SignUp from "./Pages/SignUp"
-import openMap from 'react-native-open-maps'
+import Trip from "./Pages/Trip";
 
 
 
@@ -97,6 +97,7 @@ const navigation = useNavigation();
          <Stack.Screen name = "Profile" component = {Profile} options={{...Styles, title: "Ваш профиль"}} />
          <Stack.Screen name = "Login" component = {Login} options={{...Styles, title: "", headerLeft: () => (<Text>   </Text>)}} />
          <Stack.Screen name = "SignUp" component = {SignUp} options={{...Styles, title: ""}} />
+         <Stack.Screen name = "Trip" component = {Trip} options={{...Styles, title: "Состав маршрута"}} />
        </Stack.Navigator>
     </View>
       
