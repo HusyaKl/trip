@@ -16,6 +16,13 @@ import pandas
 from django.views.decorators.csrf import csrf_exempt
 from recomendation.models import Place as mPlace
 from progress.bar import Bar
+from geopy.geocoders import Nominatim
+from geopy.distance import geodesic
+from openrouteservice import Client
+import requests
+
+api_key = '5b3ce3597851110001cf62486e78ddcacd9c43fb8852048902ff97a2'
+ors_client = Client(key=api_key)
 
 model = load(os.path.dirname(os.path.abspath(__file__)) +
              '/savedModel/model.joblib')
@@ -241,7 +248,12 @@ def analise(request):
     u = trip_forming(metro_station)
     return HttpResponse(u)
 
+#этот метод отвечает за методику формирования 3 маршрутов на выбор и обращается к trip_forming
+def trip_map(metro, places):
+    pass
+        
 
+#этот метод отвечает за сам алгоритм формирования маршрута
 def trip_forming(metro):
     # из request получаем current user(username)
     # из бд получаем список оценок польхователя(следующие строки для теста пока)
@@ -320,7 +332,7 @@ def trip_forming(metro):
         near_places_2 = []
         near_places_3 = []
         near_places_4 = []
-
+        
         near_places_1 = near_all_places(places_1, near_places_1, station)
         near_places_2 = near_all_places(places_2, near_places_2, station)
         near_places_3 = near_all_places(places_3, near_places_3, station)
@@ -345,6 +357,7 @@ def trip_forming(metro):
         s_p = sorted(s_p, key=lambda x: x[1])
         start_place = s_p[0]
 
+        
         metro = metro.replace(' ', '+')
         address = f'метро+{metro}/'
 
@@ -398,11 +411,13 @@ def trip_forming(metro):
         if end == 4:
             near_places_4_finish = near_finish_places(
                 near_places_4, near_places_4_finish, finish_station)
-
+        print('jvhuvhuhuc finish')
         print(near_places_1_finish, near_places_2_finish,
               near_places_3_finish, near_places_4_finish)
-
+        print(start_place)
+        print(near_places_2)
         if start_place in near_places_1:
+            print('11111111111111111111')
 
             near_places_2 = sorted(
                 near_places_2, key=lambda x: x[1], reverse=True)
@@ -430,6 +445,7 @@ def trip_forming(metro):
                 address += replace_sth(near_places_4_finish)
 
         if start_place in near_places_2:
+            print('22222222222222222222')
 
             near_places_3 = sorted(
                 near_places_3, key=lambda x: x[1], reverse=True)
@@ -457,7 +473,7 @@ def trip_forming(metro):
                 address += replace_sth(near_places_1_finish)
 
         if start_place in near_places_3:
-
+            print('33333333333')
             near_places_4 = sorted(
                 near_places_4, key=lambda x: x[1], reverse=True)
             near_places_2 = sorted(
@@ -484,7 +500,7 @@ def trip_forming(metro):
                 address += replace_sth(near_places_2_finish)
 
         if start_place in near_places_4:
-
+            print('44444444444444444444')
             near_places_1 = sorted(
                 near_places_1, key=lambda x: x[1], reverse=True)
             near_places_3 = sorted(
@@ -510,8 +526,57 @@ def trip_forming(metro):
             elif end == 3:
                 address += replace_sth(near_places_3_finish)
 
+
         finish_station = finish_station['name']
         address += f'метро+{finish_station}/'
+
+
+        #определение расстояния маршрута
+        dist = 0
+        if end == 1:
+            dist += near_places_1_finish[0][1]
+            dist += check_dist_uno(near_places_1_finish)
+
+        if end == 2:
+            if near_places_1 != []:
+                dist += near_places_1[0][1]
+                dist += check_dist_double(near_places_1, near_places_2_finish)
+                dist += check_dist_uno(near_places_2_finish)
+                dist += near_places_2_finish[0][1]
+            else: 
+                dist += check_dist_uno(near_places_2_finish)
+            
+        if end == 3:
+            if near_places_1 != []:
+                dist += near_places_1[0][1]
+                dist += check_dist_double(near_places_1, near_places_2)
+                dist += check_dist_double(near_places_2, near_places_3_finish)
+                dist += check_dist_uno(near_places_3_finish)
+                dist += near_places_3_finish[0][1]
+            else:
+                dist += near_places_2[0][1]
+                print(dist)
+                dist += check_dist_double(near_places_2, near_places_3_finish)
+                dist += check_dist_uno(near_places_3_finish)
+                dist += near_places_3_finish[len(near_places_3_finish)-1][1]
+                print(dist)
+
+        if end == 4:
+            dist += near_places_1[0][1]
+            dist += check_dist_double(near_places_1, near_places_2)
+            dist += check_dist_double(near_places_2, near_places_3)
+            dist += check_dist_double(near_places_3, near_places_4_finish)
+            dist += check_dist_uno(near_places_4_finish)
+            dist += near_places_4_finish[0][1]
+        print('final dist')
+        print(dist)
+        #разделение на категории
+        if dist <= 1.5:
+            level = 1
+        elif (dist > 1.5 and dist < 3):
+            level = 2
+        else:
+            level = 3
 
         url_to_maps = f'https://www.google.com/maps/dir/{address}'
 
@@ -607,18 +672,66 @@ def near_finish_places(places, finish_places, finish_station):
     for i in range(len(places)):
         x, y = split_coordinates(places[i][0].coordinates)
         km = haversine(x, y, finish_station['lat'], finish_station['lng'])
-        near_place = (places[i][0], km)
-        finish_places.append(near_place)
+        distance = geodesic((x, y), (finish_station['lat'], finish_station['lng'])).km
+        print(distance - km)
+        if (distance - km) < 0.5:
+            near_place = (places[i][0], km)
+            finish_places.append(near_place)
 
     finish_places = sorted(finish_places, key=lambda x: x[1], reverse=True)
+    print('finish')
+    print(finish_places)
     return (finish_places)
 
 
 def near_all_places(places, near_places, station):
     for i in range(len(places)):
         x, y = split_coordinates(places[i].coordinates)
-        km = haversine(x, y, station['lat'], station['lng'])
-        near_place = (places[i], km)
-        near_places.append(near_place)
+        km1 = haversine(x, y, station['lat'], station['lng'])
+        km2 = geodesic((x, y), (station['lat'], station['lng'])).km
+        print(km1 - km2)
+        if (km2- km1) < 0.6:
+            near_place = (places[i], km1)
+            near_places.append(near_place)
     near_places = sorted(near_places, key=lambda x: x[1])
+    print(near_places)
     return (near_places)
+
+def check_dist_uno(places):
+    distance = 0
+    print(places)
+    for i in range(len(places)-1):
+        x1, y1 = split_coordinates(places[i][0].coordinates)
+        x2, y2 = split_coordinates(places[i+1][0].coordinates)
+        km = geodesic((x1, y1), (x2, y2)).km
+        coords = [(y1, x1), (y2, x2)]
+        r = ors_client.directions(coords, profile='foot-walking', format='geojson', radiuses=1000)
+        d = r['features'][0]['properties']['segments'][0]['distance']/1000
+        distance += d
+        print(distance)
+        print('her poimi')
+        print(d)     
+    return(distance)
+
+def check_dist_double(places1, places2):
+    distance = 0
+    print(places1)
+    for i in range(len(places1)-1):
+        x1, y1 = split_coordinates(places1[i][0].coordinates)
+        x2, y2 = split_coordinates(places1[i+1][0].coordinates)
+        km = geodesic((x1, y1), (x2, y2)).km
+        coords = [(y1, x1), (y2, x2)]
+        r = ors_client.directions(coords, profile='foot-walking', format='geojson', radiuses=1000)
+        d = r['features'][0]['properties']['segments'][0]['distance']/1000
+        distance += d
+        print(distance)
+    x1, y1 = split_coordinates(places1[len(places1)-1][0].coordinates)
+    x2, y2 = split_coordinates(places2[0][0].coordinates)
+    km = geodesic((x1, y1), (x2, y2)).km
+    coords = [(y1, x1), (y2, x2)]
+    r = ors_client.directions(coords, profile='foot-walking', format='geojson', radiuses=1000)
+    d = r['features'][0]['properties']['segments'][0]['distance']/1000
+    distance += d
+    print(distance)
+    
+    return(distance)

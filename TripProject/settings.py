@@ -75,7 +75,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'TripProject.wsgi.application'
 
-CSRF_TRUSTED_ORIGINS = ['http://*192.168.0.197']
+CSRF_TRUSTED_ORIGINS = ['http://192.168.1.65']
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
