@@ -172,7 +172,7 @@ def parse(relative_url) -> Place:
     temp_desscription = data['stack'][0]['results']['items'][0]['features']
     description = ''
     for i in temp_desscription:
-        # TODO: check if None
+        # TODO check if None
         if i.get('type') == 'bool':
             description += f"{i.get('name').capitalize()}: {str(i.get('value')).replace('True', 'да').replace('False', 'нет')}"
         elif i.get('type') == 'text':
@@ -218,13 +218,16 @@ def main(urls):
 
 
 def load_places_from_csv(request):
-    df = pandas.read_csv(os.path.dirname(
-        os.path.abspath(__file__))+'/coffee_shops.csv')
-    main(df['place'].unique())
-    return HttpResponse('OK: [200]')
+    if request['method'].lower() == 'get':
+        filename = request.GET['file']
+        if filename:
+            df = pandas.read_csv(os.path.dirname(os.path.abspath(__file__))+f'{filename}/.csv')
+            main(df['place'].unique())
+            return HttpResponse('OK: [200]')
+    return HttpResponse('Error 403')
 
 
-@csrf_exempt
+@csrf_exempt # TODO remove on release
 def analise(request):
     places = []
     check = request.POST['check1']
