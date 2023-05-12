@@ -168,7 +168,7 @@ def parse(relative_url) -> Place:
     data = soup.find('script', {'class': 'state-view'}).text
     data = json.loads(data)
     category = data['config']['meta']['breadcrumbs'][2]['category']['seoname']
-    name = data['config']['meta']['breadcrumbs'][3]['name']
+    name = data['config']['meta']['breadcrumbs'][-2]['name']
     temp_desscription = data['stack'][0]['results']['items'][0]['features']
     description = ''
     for i in temp_desscription:
@@ -218,12 +218,11 @@ def main(urls):
 
 
 def load_places_from_csv(request):
-    if request['method'].lower() == 'get':
-        filename = request.GET['file']
-        if filename:
-            df = pandas.read_csv(os.path.dirname(os.path.abspath(__file__))+f'{filename}/.csv')
-            main(df['place'].unique())
-            return HttpResponse('OK: [200]')
+    filename = request.GET['file']
+    if filename:
+        df = pandas.read_csv(os.path.dirname(os.path.abspath(__file__))+'/'+f'{filename}.csv')
+        main(df['place'].unique())
+        return HttpResponse('OK: [200]')
     return HttpResponse('Error 403')
 
 
@@ -401,6 +400,8 @@ def trip_forming(metro):
         near_places_2_finish = []
         near_places_3_finish = []
         near_places_4_finish = []
+        print('end')
+        print(end)
 
         if end == 1:
             near_places_1_finish = near_finish_places(
@@ -552,25 +553,59 @@ def trip_forming(metro):
         if end == 3:
             if near_places_1 != []:
                 dist += near_places_1[0][1]
-                dist += check_dist_double(near_places_1, near_places_2)
-                dist += check_dist_double(near_places_2, near_places_3_finish)
+                if near_places_2 != []:
+                    dist += check_dist_double(near_places_1, near_places_2)
+                    dist += check_dist_double(near_places_2, near_places_3_finish)
+                else:
+                    dist += check_dist_double(near_places_1, near_places_3_finish)
                 dist += check_dist_uno(near_places_3_finish)
                 dist += near_places_3_finish[0][1]
             else:
-                dist += near_places_2[0][1]
-                print(dist)
-                dist += check_dist_double(near_places_2, near_places_3_finish)
+                if near_places_2 != []:
+                    dist += near_places_2[0][1]
+                    dist += check_dist_double(near_places_2, near_places_3_finish)
                 dist += check_dist_uno(near_places_3_finish)
                 dist += near_places_3_finish[len(near_places_3_finish)-1][1]
-                print(dist)
 
         if end == 4:
-            dist += near_places_1[0][1]
-            dist += check_dist_double(near_places_1, near_places_2)
-            dist += check_dist_double(near_places_2, near_places_3)
-            dist += check_dist_double(near_places_3, near_places_4_finish)
+            if near_places_1 != []:
+                dist += near_places_1[0][1]
+                print('1')
+                print(dist)
+                if near_places_2 != []:
+                    dist += check_dist_double(near_places_1, near_places_2)
+                    if near_places_3 != []:
+                        dist += check_dist_double(near_places_2, near_places_3)
+                        dist += check_dist_double(near_places_3, near_places_4_finish)
+                    else:
+                        dist += check_dist_double(near_places_2, near_places_4_finish)
+                else:
+                    if near_places_3 != []:
+                        dist += check_dist_double(near_places_1, near_places_3)
+                        print('2')
+                        print(dist)
+                        dist += check_dist_double(near_places_3, near_places_4_finish)
+                        print('3')
+                        print(dist)
+                    else:
+                        dist += check_dist_double(near_places_1, near_places_4_finish)
+
+            else:
+                
+                if near_places_2 != []:
+                    dist += near_places_2[0][1]
+                    if near_places_3 != []:
+                        dist += check_dist_double(near_places_2, near_places_3)
+                        dist += check_dist_double(near_places_3, near_places_4_finish)
+                    else:
+                        dist += check_dist_double(near_places_2, near_places_4_finish)
+                else:
+                    if near_places_3 != []:
+                        dist += near_places_3[0][1]
+                        dist += check_dist_double(near_places_3, near_places_4_finish)
             dist += check_dist_uno(near_places_4_finish)
             dist += near_places_4_finish[0][1]
+
         print('final dist')
         print(dist)
         #разделение на категории
