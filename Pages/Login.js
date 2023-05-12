@@ -17,7 +17,7 @@ function Login(props) {
     const LoginUser = () => {
         let csfrForm = new FormData();
         csfrForm.append('key', 'MdEy9qM)<?HFHSE?``9h}d1)$AbyQSU%AP]~I%+C>wKS^kkPN%,@S^PDlhoKF&B');
-        fetch('http://192.168.0.197:8000/api/get_csrf/', {
+        fetch('http://192.168.1.65:8000/api/get_csrf/', {
             method: "POST",
             body: csfrForm
         })
@@ -28,7 +28,7 @@ function Login(props) {
             formData.append('email', email);
             formData.append('password', password);
             formData.append('csrfmiddlewaretoken', csrf_token)
-            fetch('http://192.168.0.197:8000/api/signin/', {
+            fetch('http://192.168.1.65:8000/api/signin/', {
                 method: "POST",
                 
 

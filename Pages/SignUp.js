@@ -18,7 +18,7 @@ function Signup(props) {
     const SignUpUser = () => {
         let csfrForm = new FormData();
         csfrForm.append('key', 'MdEy9qM)<?HFHSE?``9h}d1)$AbyQSU%AP]~I%+C>wKS^kkPN%,@S^PDlhoKF&B');
-        fetch('http://192.168.0.197:8000/api/get_csrf/', {
+        fetch('http://192.168.1.65:8000/api/get_csrf/', {
             method: "POST",
             body: csfrForm
         })
@@ -30,7 +30,7 @@ function Signup(props) {
             formData.append('username', username);
             formData.append('password', password);
             formData.append('csrfmiddlewaretoken', csrf_token)
-            fetch('http://192.168.0.197:8000/api/signup/', {
+            fetch('http://192.168.1.65:8000/api/signup/', {
                 method: "POST",
                 
 

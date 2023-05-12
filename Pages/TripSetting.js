@@ -40,7 +40,7 @@ function Setting() {
           formData.append('check4', check4);
           formData.append('check5', check5);
           formData.append('metro', metro);
-          fetch('http://192.168.0.197:8000/api/analise/', {
+          fetch('http://192.168.1.65:8000/api/analise/', {
               method: "POST",
               
               body: formData
