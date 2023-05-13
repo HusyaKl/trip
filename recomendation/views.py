@@ -16,7 +16,6 @@ import pandas
 from django.views.decorators.csrf import csrf_exempt
 from recomendation.models import Place as mPlace
 from progress.bar import Bar
-from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 from openrouteservice import Client
 import requests
@@ -168,22 +167,33 @@ def parse(relative_url) -> Place:
     data = soup.find('script', {'class': 'state-view'}).text
     data = json.loads(data)
     category = data['config']['meta']['breadcrumbs'][2]['category']['seoname']
-    name = data['config']['meta']['breadcrumbs'][-2]['name']
-    temp_desscription = data['stack'][0]['results']['items'][0]['features']
+    # TODO handle all types of categories
+    name = None
+    for i in data['config']['meta']['breadcrumbs']:
+        if i.get('type') == 'search':
+            name = i['name']
+            break
+    if name is None:
+        for i in data['stack'][0]['results']['items']:
+            if i['type'] == 'business':
+                name = i['title']
+    if name is None: name = 'None'
+    temp_desscription = data['stack'][0]['results']['items'][0].get('features')
     description = ''
-    for i in temp_desscription:
-        # TODO check if None
-        if i.get('type') == 'bool':
-            description += f"{i.get('name').capitalize()}: {str(i.get('value')).replace('True', 'да').replace('False', 'нет')}"
-        elif i.get('type') == 'text':
-            description += f"{i.get('name').capitalize()}: {i.get('value')}"
-        elif i.get('type') == 'enum':
-            description += i.get('name').capitalize() + ': '
-            values = i.get('value')
-            for i, value in enumerate(values):
-                description += value.get('name')
-                description += ', ' if i < (len(values) - 1) else ''
-        description += '\n'
+    if temp_desscription:
+        for i in temp_desscription:
+            if i.get('name') is None: continue
+            if i.get('type') == 'bool':
+                description += f"{i.get('name').capitalize()}: {str(i.get('value')).replace('True', 'да').replace('False', 'нет')}"
+            elif i.get('type') == 'text':
+                description += f"{i.get('name').capitalize()}: {i.get('value')}"
+            elif i.get('type') == 'enum':
+                description += i.get('name').capitalize() + ': '
+                values = i.get('value')
+                for i, value in enumerate(values):
+                    description += value.get('name')
+                    description += ', ' if i < (len(values) - 1) else ''
+            description += '\n'
     metro_station = data['stack'][0]['results']['items'][0]['metro'][0]['name']
     address = data['stack'][0]['results']['items'][0]['fullAddress']
     coordinates = tuple(data['stack'][0]['results']['items'][0]['geoWhere']
@@ -201,19 +211,19 @@ def parse(relative_url) -> Place:
 def main(urls):
     bar = Bar('Loading csv to db.', max=len(urls))
     for url in urls:
-        try:
-            place = parse(url)
-            mPlace.objects.create(category=place.category,
-                                  name=place.name,
-                                  description=place.description,
-                                  metrostation=place.metro_station,
-                                  address=place.address,
-                                  coordinates=str(place.coordinates),
-                                  url=url,
-                                  image=place.image)
-            bar.next()
-        except:
-            print('...Skiped')
+        '''try:'''
+        place = parse(url)
+        mPlace.objects.create(category=place.category,
+                                name=place.name,
+                                description=place.description,
+                                metrostation=place.metro_station,
+                                address=place.address,
+                                coordinates=str(place.coordinates),
+                                url=url,
+                                image=place.image)
+        bar.next()
+        '''except:'''
+        print('...Skiped')
     bar.finish()
 
 
