@@ -19,6 +19,7 @@ from progress.bar import Bar
 from geopy.distance import geodesic
 from openrouteservice import Client
 import requests
+from yandex_geocoder import Client as YaClient
 
 api_key = '5b3ce3597851110001cf62486e78ddcacd9c43fb8852048902ff97a2'
 ors_client = Client(key=api_key)
@@ -626,8 +627,14 @@ def trip_forming(metro):
         else:
             level = 3
 
+        addresses = address.replace('+', ' ').split('/')
+        client = YaClient('4be45663-40b5-41d1-be8d-107b39c200ca')
+        for i in range(len(addresses)):
+            if addresses[i] == '': continue
+            addresses[i] = client.coordinates(addresses[i])
         url_to_maps = f'https://www.google.com/maps/dir/{address}'
-
+        url_to_yamaps = yandex_maps_link_generation(*addresses)
+        print(url_to_yamaps)
         print(url_to_maps)
 
     else:
@@ -641,6 +648,7 @@ def trip_forming(metro):
         cnt += 1
         response.append(my_dict)
     response.append(url_to_maps)
+    response.append(url_to_yamaps)
     return HttpResponse(json.dumps(response))
 
 
@@ -783,3 +791,18 @@ def check_dist_double(places1, places2):
     print(distance)
     
     return(distance)
+
+def yandex_maps_link_generation(*nodes):
+    rtext = ''
+    for i, node in enumerate(nodes):
+        print('node is', node)
+        if len(list(node)) != 2: continue
+        (long, lat) = node
+        long = float(long)
+        lat = float(lat)
+        if i+1 < len(nodes):
+            rtext += f'{lat}%2C{long}~'
+        else:
+            rtext += f'{lat}%2C{long}'
+    result = f'https://yandex.ru/maps/?mode=routes&rtext={rtext}&rtt=pd'
+    return result
