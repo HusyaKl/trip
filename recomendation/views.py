@@ -24,15 +24,24 @@ from yandex_geocoder import Client as YaClient
 api_key = '5b3ce3597851110001cf62486e78ddcacd9c43fb8852048902ff97a2'
 ors_client = Client(key=api_key)
 
-model = load(os.path.dirname(os.path.abspath(__file__)) +
+coffee = load(os.path.dirname(os.path.abspath(__file__)) +
              '/savedModel/model.joblib')
-
+rest = load(os.path.dirname(os.path.abspath(__file__)) +
+             '/savedModel/rest.joblib')
+museum = load(os.path.dirname(os.path.abspath(__file__)) +
+             '/savedModel/museum.joblib')
+gallery = load(os.path.dirname(os.path.abspath(__file__)) +
+             '/savedModel/gallery.joblib')
+bar = load(os.path.dirname(os.path.abspath(__file__)) +
+             '/savedModel/bar.joblib')
 
 def predict(request):
     user = "Яна"
-    place_reduction_user = [('Эрна', 3), ('Циники', 2), ('Шоколадница', 4),
+    coffees = [('Эрна', 3), ('Циники', 2), ('Шоколадница', 4),
                             ('Даблби', 5)]
-    my_list = model_predict(user, place_reduction_user)
+
+    my_list = model_predict(coffee, user, coffees)
+    print(my_list)
     paginator = Paginator(my_list, 7)
     page_number = request.GET.get('page')
     print('пагинация')
@@ -42,7 +51,7 @@ def predict(request):
     return (HttpResponse(json.dumps(page.object_list)))
 
 
-def model_predict(user, place_likes):
+def model_predict(model, user, place_likes):
     recomend = model.predict(place_likes, user)
     recomend = recomend.index.tolist()
     a = []
@@ -167,7 +176,15 @@ def parse(relative_url) -> Place:
     soup = BS(response.text, features='html.parser')
     data = soup.find('script', {'class': 'state-view'}).text
     data = json.loads(data)
-    category = data['config']['meta']['breadcrumbs'][2]['category']['seoname']
+    category = None
+    for i in data['config']['meta']['breadcrumbs']:
+        if i.get('type') == 'category':
+            category = i['category']['seoname']
+            break
+    if category is None:
+        category = 'None'
+
+
     # TODO handle all types of categories
     name = None
     for i in data['config']['meta']['breadcrumbs']:
@@ -212,19 +229,19 @@ def parse(relative_url) -> Place:
 def main(urls):
     bar = Bar('Loading csv to db.', max=len(urls))
     for url in urls:
-        '''try:'''
-        place = parse(url)
-        mPlace.objects.create(category=place.category,
-                                name=place.name,
-                                description=place.description,
-                                metrostation=place.metro_station,
-                                address=place.address,
-                                coordinates=str(place.coordinates),
-                                url=url,
-                                image=place.image)
-        bar.next()
-        '''except:'''
-        print('...Skiped')
+        try:
+            place = parse(url)
+            mPlace.objects.create(category=place.category,
+                                    name=place.name,
+                                    description=place.description,
+                                    metrostation=place.metro_station,
+                                    address=place.address,
+                                    coordinates=str(place.coordinates),
+                                    url=url,
+                                    image=place.image)
+            bar.next()
+        except:
+            print('...Skiped')
     bar.finish()
 
 
@@ -251,14 +268,14 @@ def analise(request):
         places.append('bar')
     check = request.POST['check4']
     if check == 'true':
-        places.append('restraunt')
+        places.append('restraurant')
     check = request.POST['check5']
     if check == 'true':
         places.append('sight')
     metro_station = request.POST['metro']
     print(metro_station)
     metro = 'Третьяковская'
-    u = trip_forming(metro_station)
+    u = trip_forming(metro_station, places)
     return HttpResponse(u)
 
 #этот метод отвечает за методику формирования 3 маршрутов на выбор и обращается к trip_forming
@@ -267,13 +284,14 @@ def trip_map(metro, places):
         
 
 #этот метод отвечает за сам алгоритм формирования маршрута
-def trip_forming(metro):
+def trip_forming(metro, categories):
+
     # из request получаем current user(username)
     # из бд получаем список оценок польхователя(следующие строки для теста пока)
     place_reduction_user = [('Волконский', 3), ('Cofix', 2), ('Циники', 4),
                             ('Эрна', 5)]
     user = 'Яна'
-    my_list = model_predict(user, place_reduction_user)
+
     stations = metro_api()
     station = coordinates_of_station(metro, stations)
     print(station)
@@ -281,75 +299,64 @@ def trip_forming(metro):
     y_coordinate = station['lng']
     near_stations = near_metrostations(
         stations, station['lat'], station['lng'])
-    places = []
-    for i in range(len(my_list)):
-        place = mPlace.objects.filter(name=my_list[i]['name'])
-        if not place:
-            pass
-        else:
-            if len(place) > 1:
-                near_places = []
-                for j in range(len(place)):
-                    x, y = split_coordinates(place[j].coordinates)
-                    km = haversine(x, y, station['lat'], station['lng'])
-                    near_place = (place[j], km)
-                    near_places.append(near_place)
-                    near_places = sorted(near_places, key=lambda x: x[1])
-                places.append(near_places[0][0])
-
-    # подбор мест с нужной станцией метро или соседними с ней станциями
-
+    
     places_in_trip = []
-    for i in places:
-        if i.metrostation == metro:
-            places_in_trip.append(i)
-    print(places_in_trip)
-    if len(places_in_trip) < 2:
-        for i in places:
-            for j in range(1, len(near_stations)):
-                if i.metrostation == near_stations[j][0] and i not in places_in_trip:
-                    places_in_trip.append(i)
-    if len(places_in_trip) < 2:
-        another_places = mPlace.objects.all()
-        for i in another_places:
-            if i.metrostation == metro:
-                places_in_trip.append(i)
-    if len(places_in_trip) < 2:
-        for i in another_places:
-            for j in range(1, len(near_stations)):
-                if i.metrostation == near_stations[j][0]:
-                    places_in_trip.append(i)
-    if len(places_in_trip) != 0:
-        print(len(places_in_trip), places_in_trip)
-        # сортировка мест по возрастанию расстояния до метро
-        places_1 = []
-        places_2 = []
-        places_3 = []
-        places_4 = []
-        for i in range(len(places_in_trip)):
-            x, y = split_coordinates(places_in_trip[i].coordinates)
-            m1 = x - x_coordinate
-            m2 = y - y_coordinate
-            print(m1, m2)
-            if m1 > 0 and m2 > 0:
-                places_1.append(places_in_trip[i])
-            elif m1 > 0 and m2 < 0:
-                places_4.append(places_in_trip[i])
-            elif m1 < 0 and m2 > 0:
-                places_2.append(places_in_trip[i])
-            elif m1 < 0 and m2 < 0:
-                places_3.append(places_in_trip[i])
-        print(places_1, places_2, places_3, places_4)
+    if (len(categories) == 1) and ('sight' in categories): #человек выбрал что хочет только гулять - маршрут парк и до 6 достопримечательностей
+        landmarks = mPlace.objects.filter(category='landmark')
+        park = mPlace.objects.filter(category='park')
+        places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 5))
+        places_in_trip.append(places_near_with_metro(park, near_stations, metro, 1))
 
-        near_places_1 = []
-        near_places_2 = []
-        near_places_3 = []
-        near_places_4 = []
+    elif (len(categories) == 4) and ('sight' not in categories) or (len(categories) == 5): #желание посетить все типы мест, каждого не больше 2 чтоб успеть и проверка длины
+        number_places = 2
+        landmarks = landmarks = mPlace.objects.filter(category='landmark')
+        places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 2))
+
+    elif (((len(categories) == 1) or (len(categories) == 2) and ('restaurant' and 'coffee_shop' in categories)) and ('sight' not in categories)) or ((len(categories) == 2) and ('sight' in categories)): #один тип места до 3 каждого и 5 дост
+        number_places = 3
+        landmarks = landmarks = mPlace.objects.filter(category='landmark')
+        places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 5))
+
+    else: #2 типа мест до 2 и до 3 дост
+        number_places = 2
+        landmarks = landmarks = mPlace.objects.filter(category='landmark')
+        places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 3))
+  
+    if 'restaurant' and 'coffee_shop' in categories:
+
+        coffees = model_predict(coffee, user, place_reduction_user)
+        rests = model_predict(rest, user, place_reduction_user)
+        rest_and_coffee = coffees + rests
+        places_in_trip.append(places_near_with_metro(rest_and_coffee, near_stations, metro, number_places))
+    else:
+        if 'restaurant' in categories:
+            rests = model_predict(rest, user, place_reduction_user)
+            places_in_trip.append(places_near_with_metro(rest_and_coffee, near_stations, metro, number_places))
+
+        if 'coffee_shop' in categories:
+            coffees = model_predict(coffee, user, place_reduction_user)
+            places_in_trip.append(places_near_with_metro(rest_and_coffee, near_stations, metro, number_places))
+
+        if 'museum' in categories:
+            galleries = model_predict(gallery, user, place_reduction_user)
+            museums = model_predict(museum, user, place_reduction_user)
+            museum_and_gallery = museums + galleries
+            places_in_trip.append(places_near_with_metro(museum_and_gallery, near_stations, metro, number_places))
+
+        if 'bar' in categories:
+            bars = model_predict(bar, user, place_reduction_user)
+            places_in_trip.append(places_near_with_metro(bars, near_stations, metro, number_places))
+
+
+    if len(places_in_trip) != 0:
+        places = sort_places_by_near_metro(places_in_trip, x_coordinate, y_coordinate)  
+
+        near_places = []
         
-        near_places_1 = near_all_places(places_1, near_places_1, station)
-        near_places_2 = near_all_places(places_2, near_places_2, station)
-        near_places_3 = near_all_places(places_3, near_places_3, station)
-        near_places_4 = near_all_places(places_4, near_places_4, station)
+        near_places[0] = near_all_places(places[0], near_places[0], station)
+        near_places[1] = near_all_places(places[1], near_places[1], station)
+        near_places[2] = near_all_places(places[2], near_places[2], station)
+        near_places[3] = near_all_places(places[3], near_places[3], station)
 
         print(near_places_1, near_places_2, near_places_3, near_places_4)
         start_place = []
@@ -792,6 +799,7 @@ def check_dist_double(places1, places2):
     
     return(distance)
 
+<<<<<<< HEAD
 def yandex_maps_link_generation(*nodes):
     rtext = ''
     for i, node in enumerate(nodes):
@@ -806,3 +814,65 @@ def yandex_maps_link_generation(*nodes):
             rtext += f'{lat}%2C{long}'
     result = f'https://yandex.ru/maps/?mode=routes&rtext={rtext}&rtt=pd'
     return result
+=======
+def add_places(my_list, station):
+    places = []
+    for i in range(len(my_list)):
+        place = mPlace.objects.filter(name=my_list[i]['name'])
+        if not place:
+            pass
+        else:
+            if len(place) > 1:
+                near_places = []
+                for j in range(len(place)):
+                    x, y = split_coordinates(place[j].coordinates)
+                    km = haversine(x, y, station['lat'], station['lng'])
+                    near_place = (place[j], km)
+                    near_places.append(near_place)
+                    near_places = sorted(near_places, key=lambda x: x[1])
+                places.append(near_places[0][0])
+    return(places)
+
+def places_near_with_metro(places, near_stations, metro, number_of_places):
+     # подбор мест с нужной станцией метро или соседними с ней станциями
+
+    places_in_trip = []
+    for i in places:
+        if i.metrostation == metro:
+            places_in_trip.append(i)
+    print(places_in_trip)
+    if len(places_in_trip) < number_of_places:
+        for i in places:
+            for j in range(1, len(near_stations)):
+                if i.metrostation == near_stations[j][0] and i not in places_in_trip:
+                    places_in_trip.append(i)
+    if len(places_in_trip) < number_of_places:
+        another_places = mPlace.objects.all()
+        for i in another_places:
+            if i.metrostation == metro:
+                places_in_trip.append(i)
+    if len(places_in_trip) < number_of_places:
+        for i in another_places:
+            for j in range(1, len(near_stations)):
+                if i.metrostation == near_stations[j][0]:
+                    places_in_trip.append(i)
+    return(places_in_trip)
+
+def sort_places_by_near_metro(places_in_trip, x_coordinate, y_coordinate):
+    # сортировка мест по возрастанию расстояния до метро
+        places= []
+        for i in range(len(places_in_trip)):
+            x, y = split_coordinates(places_in_trip[i].coordinates)
+            m1 = x - x_coordinate
+            m2 = y - y_coordinate
+            print(m1, m2)
+            if m1 > 0 and m2 > 0:
+                places[0].append(places_in_trip[i])
+            elif m1 > 0 and m2 < 0:
+                places[3].append(places_in_trip[i])
+            elif m1 < 0 and m2 > 0:
+                places[1].append(places_in_trip[i])
+            elif m1 < 0 and m2 < 0:
+                places[2].append(places_in_trip[i])
+        return(places)
+>>>>>>> a8f276d0 (forming trip)
