@@ -314,18 +314,21 @@ def trip_forming(metro, categories):
         places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 2))
 
     elif (((len(categories) == 1) or (len(categories) == 2) and (
-    'restaurant' and 'coffee_shop' in categories)) and ('sight' not in categories)) or (
+    ('restaurant' in categories) and ('coffee_shop' in categories))) and ('sight' not in categories)) or (
     (len(categories) == 2) and ('sight' in categories)): #один тип места до 3 каждого и 5 дост
         number_places = 3
-        landmarks = landmarks = mPlace.objects.filter(category='landmark')
-        places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 5))
+        landmarks = mPlace.objects.filter(category='landmark')
+        places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 5, 'landmark'))
+        places_in_trip = [sort_overthetop(places_in_trip, station, 5)]
+        print('jdchjdcghdcbh')
+        print(places_in_trip)
 
     else: #2 типа мест до 2 и до 3 дост
         number_places = 2
         landmarks = landmarks = mPlace.objects.filter(category='landmark')
         places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 3))
   
-    if 'restaurant' and 'coffee_shop' in categories:
+    if ('restaurant' in categories) and ('coffee_shop' in categories):
 
         coffees = model_predict(coffee, user, place_reduction_user)
         rests = model_predict(rest, user, place_reduction_user)
@@ -334,11 +337,21 @@ def trip_forming(metro, categories):
     else:
         if 'restaurant' in categories:
             rests = model_predict(rest, user, place_reduction_user)
-            places_in_trip.append(places_near_with_metro(rest_and_coffee, near_stations, metro, number_places))
+            rests = add_places(rests, station)
+            places_in_trip.append(places_near_with_metro(rests, near_stations, metro, number_places))
 
         if 'coffee_shop' in categories:
             coffees = model_predict(coffee, user, place_reduction_user)
-            places_in_trip.append(places_near_with_metro(rest_and_coffee, near_stations, metro, number_places))
+            coffees = add_places(coffees, station)
+            print(coffees)
+            if len(coffees) > number_places:
+                c = sort_overthetop([places_near_with_metro(coffees, near_stations, metro, number_places, 'coffee_shop')], station, number_places)
+            else:
+                c = coffees
+            places_in_trip.append(c)
+
+            print('thats ok')
+            print(places_in_trip)
 
         if 'museum' in categories:
             galleries = model_predict(gallery, user, place_reduction_user)
@@ -352,15 +365,19 @@ def trip_forming(metro, categories):
 
 
     if len(places_in_trip) != 0:
+        print('kjvkvfjvjbdvhbdvhbhschbvscgvscghvsgvsgvsgv gsv scv hcvh dvhdbh db')
+        print(places_in_trip)
         places = sort_places_by_near_metro(places_in_trip, x_coordinate, y_coordinate)  
-
-        near_places = []
+        print('kjvkvfjvjbdvhbdvhbhschbvscgvscghvsgvsgvsgv gsv scv hcvh dvhdbh db')
+        print(places)
+        near_places = [[], [], [], []]
+        print(len(near_places))
         
-        for i in (len(near_places)):
+        for i in range(len(near_places)):
             near_places[i] = near_all_places(places[i], near_places[i], station)
-        
+        print(near_places)
         start_place = []
-        for i in (len(near_places)):
+        for i in range(len(near_places)):
             if near_places[i] != []:
                 start_place.append(near_places[i][0][0])
 
@@ -377,12 +394,30 @@ def trip_forming(metro, categories):
         metro = metro.replace(' ', '+')
         address = f'метро+{metro}/'
 
-        for i in (len(near_places)):
-            if near_places[i] != []:
-                end = i
-
-        for i in (len(near_places)):
+        for i in range(len(near_places)):
+            if start_place in near_places[i]:
+                start = i
+        print('start')
+        print(start)
+        if (start == 0):
+            end = 3
+        else:
+            end = start - 1
+        
+        for i in range(4):
+            if (near_places[end] == []):
+                if (end == 0):
+                    end = 3
+                else:
+                    end = end - 1
+        
+        print('end')
+        print(end)
+        print(near_places)
+        for i in range(len(near_places)):
             if end == i:
+                print('poehali')
+                print(near_places[i][len(near_places[i])-1][0].address)
                 x = split_coordinates(
                     near_places[i][len(near_places[i])-1][0].coordinates)[0]
                 y = split_coordinates(
@@ -391,113 +426,91 @@ def trip_forming(metro, categories):
         finish_station = near_metrostations(stations, x, y)[0][0]
         finish_station = coordinates_of_station(finish_station, stations)
 
-        near_places_finish = []
+        near_places_finish = [[], [], [], []]
 
-        print('end')
-        print(end)
+       
 
-        for i in (len(near_places)):
+        for i in range(len(near_places)):
             if end == i:
                 near_places_finish[i] = near_finish_places(
                     near_places[i], near_places_finish[i], finish_station)
                 
-        for i in (len(near_places)):
+        for i in range(len(near_places)):
+            cnt_m = i-1
+            cnt_p = i+1
             if start_place in near_places[i]:
+                print(i)
                 if (i == 0):
                     cnt_m = 3
                 elif (i == 3):
                     cnt_p = 0
-                else:
-                    cnt_m = i-1
-                    cnt_p = i+1
                     
                 near_places[cnt_m] = sorted(
                         near_places[cnt_m], key=lambda x: x[1], reverse=True)
                 near_places[cnt_p] = sorted(
                         near_places[cnt_p], key=lambda x: x[1], reverse=True)
-                for j in (i, i+5):
-                    if j == 4:
-                        j = 0
+                for j in range(i, i+4):
+                    if j > 3:
+                        j = j%4
+                    print(j)
                     if near_places[j] != [] and end != j:
                         address += replace_sth(near_places[j])
                     elif end == j:
                         address += replace_sth(near_places_finish[j])
 
 
-            finish_station = finish_station['name']
-            address += f'метро+{finish_station}/'
+        finish_station = finish_station['name']
+        address += f'метро+{finish_station}/'
 
 
-            #определение расстояния маршрута
-            dist = 0
-            if end == 0:
-                dist += near_places_finish[0][0][1]
-                dist += check_dist_uno(near_places_finish[0])
+        #определение расстояния маршрута
+        if start == end:
+            dist += near_places_finish[start][0][1]
+            dist += check_dist_uno(near_places_finish[start])
+        else:
+            dist = near_places[start][0][1]
+            print(dist)
+        i = start 
+        iter = [0, 0, 0, 0]
+        for j in range(4):
+            iter[0] = i
+            if i == 0:
+                iter[1] = 1
+                iter[2] = 2
+                iter[3] = 3
+            if i == 1:
+                iter[1] = 2
+                iter[2] = 3
+                iter[3] = 0
+            if i == 2:
+                iter[1] = 3
+                iter[2] = 0
+                iter[3] = 1
+            if i == 3:
+                iter[1] = 0
+                iter[2] = 1
+                iter[3] = 2
+        
+            if (near_places[iter[1]] != []) and (iter[1] != end) and (iter[0] != end) and ((near_places[iter[0]] != [])):
+                dist += check_dist_double(near_places[iter[0]], near_places[iter[1]])
+            elif ((near_places[iter[2]] != []) ) and (iter[2] != end) and (iter[1] != end) and (iter[0] != end) and (near_places[iter[1]] == []) and (near_places[iter[0]] != []):
+                dist += check_dist_double(near_places[iter[0]], near_places[iter[2]])
+            elif (iter[1] == end) and (near_places[iter[0]] != []):
+                dist += check_dist_double(near_places[iter[0]], near_places_finish[iter[1]])
+                print('oookkk')
+            elif (iter[2] == end) and (near_places[iter[0]] != []) and (near_places[iter[1]] == []):
+                dist += check_dist_double(near_places[iter[0]], near_places_finish[iter[2]])
+            elif (iter[3] == end) and (near_places[iter[0]] != []) and (near_places[iter[1]] == []) and (near_places[iter[2]] == []):
+                dist += check_dist_double(near_places[iter[0]], near_places_finish[iter[3]])
 
-            if end == 1:
-                if near_places[0] != []:
-                    dist += near_places[0][0][1]
-                    dist += check_dist_double(near_places[0], near_places_finish[1])
-                    dist += check_dist_uno(near_places_finish[1])
-                    dist += near_places_finish[1][0][1]
-                else: 
-                    dist += check_dist_uno(near_places_finish[1])
-                
-            if end == 2:
-                if near_places[0] != []:
-                    dist += near_places[0][0][1]
-                    if near_places[1] != []:
-                        dist += check_dist_double(near_places[0], near_places[1])
-                        dist += check_dist_double(near_places[1], near_places_finish[2])
-                    else:
-                        dist += check_dist_double(near_places[0], near_places_finish[2])
-                    dist += check_dist_uno(near_places_finish[2])
-                    dist += near_places_finish[2][0][1]
-                else:
-                    if near_places[1] != []:
-                        dist += near_places[1][0][1]
-                        dist += check_dist_double(near_places[1], near_places_finish[2])
-                    dist += check_dist_uno(near_places_finish[2])
-                    dist += near_places_finish[2][len(near_places_finish[2])-1][1]
+            if i == 3:
+                i = 0
+            else: 
+                i = i + 1
 
-            if end == 3:
-                if near_places[0] != []:
-                    dist += near_places[0][0][1]
-                    print('1')
-                    print(dist)
-                    if near_places[1] != []:
-                        dist += check_dist_double(near_places[0], near_places[1])
-                        if near_places[2] != []:
-                            dist += check_dist_double(near_places[1], near_places[2])
-                            dist += check_dist_double(near_places[2], near_places_finish[3])
-                        else:
-                            dist += check_dist_double(near_places[1], near_places_finish[3])
-                    else:
-                        if near_places[2] != []:
-                            dist += check_dist_double(near_places[0], near_places[2])
-                            print('2')
-                            print(dist)
-                            dist += check_dist_double(near_places[2], near_places_finish[3])
-                            print('3')
-                            print(dist)
-                        else:
-                            dist += check_dist_double(near_places[0], near_places_finish[3])
+        dist += check_dist_uno(near_places_finish[end])
+        dist += near_places_finish[end][0][1]
 
-                else:
-                    
-                    if near_places[1] != []:
-                        dist += near_places[1][0][1]
-                        if near_places[2] != []:
-                            dist += check_dist_double(near_places[1], near_places[2])
-                            dist += check_dist_double(near_places[2], near_places_finish[3])
-                        else:
-                            dist += check_dist_double(near_places[1], near_places_finish[3])
-                    else:
-                        if near_places[2] != []:
-                            dist += near_places[2][0][1]
-                            dist += check_dist_double(near_places[2], near_places_finish[3])
-                dist += check_dist_uno(near_places_finish[3])
-                dist += near_places_finish[3][0][1]
 
         print('final dist')
         print(dist)
@@ -524,11 +537,14 @@ def trip_forming(metro, categories):
 
     cnt = 0
     response = []
-    for i in places_in_trip:
-        my_dict = {'id': cnt, 'name': i.name, 'address': i.address,
-                   'category': i.category, 'metro': i.metrostation}
-        cnt += 1
-        response.append(my_dict)
+    print(places_in_trip)
+    for j in range(len(places_in_trip)):
+        for i in places_in_trip[j]:
+            print(i)
+            my_dict = {'id': cnt, 'name': i.name, 'address': i.address,
+                    'category': i.category, 'metro': i.metrostation}
+            cnt += 1
+            response.append(my_dict)
     response.append(url_to_maps)
     response.append(url_to_yamaps)
     return HttpResponse(json.dumps(response))
@@ -692,11 +708,13 @@ def add_places(my_list, station):
                 places.append(near_places[0][0])
     return(places)
 
-def places_near_with_metro(places, near_stations, metro, number_of_places):
+def places_near_with_metro(places, near_stations, metro, number_of_places, categorys):
      # подбор мест с нужной станцией метро или соседними с ней станциями
 
     places_in_trip = []
     for i in places:
+        print('places')
+        print(i)
         if i.metrostation == metro:
             places_in_trip.append(i)
     print(places_in_trip)
@@ -706,7 +724,7 @@ def places_near_with_metro(places, near_stations, metro, number_of_places):
                 if i.metrostation == near_stations[j][0] and i not in places_in_trip:
                     places_in_trip.append(i)
     if len(places_in_trip) < number_of_places:
-        another_places = mPlace.objects.all()
+        another_places = mPlace.objects.filter(category=categorys)
         for i in another_places:
             if i.metrostation == metro:
                 places_in_trip.append(i)
@@ -719,20 +737,25 @@ def places_near_with_metro(places, near_stations, metro, number_of_places):
 
 def sort_places_by_near_metro(places_in_trip, x_coordinate, y_coordinate):
     # сортировка мест по возрастанию расстояния до метро
-        places= []
-        for i in range(len(places_in_trip)):
-            x, y = split_coordinates(places_in_trip[i].coordinates)
-            m1 = x - x_coordinate
-            m2 = y - y_coordinate
-            print(m1, m2)
-            if m1 > 0 and m2 > 0:
-                places[0].append(places_in_trip[i])
-            elif m1 > 0 and m2 < 0:
-                places[3].append(places_in_trip[i])
-            elif m1 < 0 and m2 > 0:
-                places[1].append(places_in_trip[i])
-            elif m1 < 0 and m2 < 0:
-                places[2].append(places_in_trip[i])
+        places = [[], [], [], []]
+        print('nhdjdhbjdvbjscbjvdbjdvbhvdnbhevbshcvcegbv ')
+        print(places_in_trip)
+        for j in range(len(places_in_trip)):
+            pl = places_in_trip[j]
+            print(pl)
+            for i in range(len(pl)):
+                x, y = split_coordinates(pl[i].coordinates)
+                m1 = x - x_coordinate
+                m2 = y - y_coordinate
+                print(m1, m2)
+                if m1 > 0 and m2 > 0:
+                    places[0].append(pl[i])
+                elif m1 > 0 and m2 < 0:
+                    places[3].append(pl[i])
+                elif m1 < 0 and m2 > 0:
+                    places[1].append(pl[i])
+                elif m1 < 0 and m2 < 0:
+                    places[2].append(pl[i])
         return(places)
 
 
@@ -750,3 +773,17 @@ def yandex_maps_link_generation(*nodes):
             rtext += f'{lat}%2C{long}'
     result = f'https://yandex.ru/maps/?mode=routes&rtext={rtext}&rtt=pd'
     return result
+
+def sort_overthetop(place, station, count):
+    places = []
+    place = place[0]
+    near_places = []
+    for j in range(len(place)):
+        x, y = split_coordinates(place[j].coordinates)
+        km = haversine(x, y, station['lat'], station['lng'])
+        near_place = (place[j], km)
+        near_places.append(near_place)
+    near_places = sorted(near_places, key=lambda x: x[1])
+    for i in range(count):
+        places.append(near_places[i][0])
+    return(places)
