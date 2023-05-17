@@ -304,14 +304,16 @@ def trip_forming(metro, categories):
     if (len(categories) == 1) and ('sight' in categories): #человек выбрал что хочет только гулять - маршрут парк и до 6 достопримечательностей
         landmarks = mPlace.objects.filter(category='landmark')
         park = mPlace.objects.filter(category='park')
-        places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 5))
-        places_in_trip.append(places_near_with_metro(park, near_stations, metro, 1))
+        places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 5, 'landmark'))
+        places_in_trip = [sort_overthetop(places_in_trip, station, 6)]
+        places_in_trip.append(limit(park, 1, near_stations, metro, station,'park'))
 
     elif (len(categories) == 4) and ('sight' not in categories) or (
     len(categories) == 5): #желание посетить все типы мест, каждого не больше 2 чтоб успеть и проверка длины
         number_places = 2
-        landmarks = landmarks = mPlace.objects.filter(category='landmark')
+        landmarks = mPlace.objects.filter(category='landmark')
         places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 2))
+        places_in_trip = [sort_overthetop(places_in_trip, station, 2)]
 
     elif (((len(categories) == 1) or (len(categories) == 2) and (
     ('restaurant' in categories) and ('coffee_shop' in categories))) and ('sight' not in categories)) or (
@@ -327,41 +329,41 @@ def trip_forming(metro, categories):
         number_places = 2
         landmarks = landmarks = mPlace.objects.filter(category='landmark')
         places_in_trip.append(places_near_with_metro(landmarks, near_stations, metro, 3))
+        places_in_trip = [sort_overthetop(places_in_trip, station, 3)]
   
     if ('restaurant' in categories) and ('coffee_shop' in categories):
 
         coffees = model_predict(coffee, user, place_reduction_user)
         rests = model_predict(rest, user, place_reduction_user)
-        rest_and_coffee = coffees + rests
-        places_in_trip.append(places_near_with_metro(rest_and_coffee, near_stations, metro, number_places))
+        coffees = add_places(coffees, station)
+        rests = add_places(rests, station)
+        places_in_trip.append(limit(coffees, number_places/2, near_stations, metro, station,'coffee_shop'))
+        places_in_trip.append(limit(rests, number_places/2, near_stations, metro, station, 'restaurant'))
     else:
         if 'restaurant' in categories:
             rests = model_predict(rest, user, place_reduction_user)
             rests = add_places(rests, station)
-            places_in_trip.append(places_near_with_metro(rests, near_stations, metro, number_places))
+            places_in_trip.append(limit(rests, number_places, near_stations, metro, station, 'restaurant'))
 
         if 'coffee_shop' in categories:
             coffees = model_predict(coffee, user, place_reduction_user)
             coffees = add_places(coffees, station)
-            print(coffees)
-            if len(coffees) > number_places:
-                c = sort_overthetop([places_near_with_metro(coffees, near_stations, metro, number_places, 'coffee_shop')], station, number_places)
-            else:
-                c = coffees
-            places_in_trip.append(c)
-
+            places_in_trip.append(limit(coffees, number_places, near_stations, metro, station, 'coffee_shop'))
             print('thats ok')
             print(places_in_trip)
 
         if 'museum' in categories:
             galleries = model_predict(gallery, user, place_reduction_user)
             museums = model_predict(museum, user, place_reduction_user)
-            museum_and_gallery = museums + galleries
-            places_in_trip.append(places_near_with_metro(museum_and_gallery, near_stations, metro, number_places))
+            galleries = add_places(galleries, station)
+            museums = add_places(museums, station)
+            places_in_trip.append(limit(galleries, number_places/2, near_stations, metro, station,'gallery'))
+            places_in_trip.append(limit(museums, number_places/2, near_stations, metro, station, 'museum'))
 
         if 'bar' in categories:
             bars = model_predict(bar, user, place_reduction_user)
-            places_in_trip.append(places_near_with_metro(bars, near_stations, metro, number_places))
+            bars = add_places(bars, station)
+            places_in_trip.append(limit(bars, number_places, near_stations, metro, station,'bar'))
 
 
     if len(places_in_trip) != 0:
@@ -392,7 +394,7 @@ def trip_forming(metro, categories):
 
         
         metro = metro.replace(' ', '+')
-        address = f'метро+{metro}/'
+        address = f'метро+{metro}+Москва/'
 
         for i in range(len(near_places)):
             if start_place in near_places[i]:
@@ -460,10 +462,11 @@ def trip_forming(metro, categories):
 
 
         finish_station = finish_station['name']
-        address += f'метро+{finish_station}/'
+        address += f'метро+{finish_station}+Москва/'
 
 
         #определение расстояния маршрута
+        dist = 0
         if start == end:
             dist += near_places_finish[start][0][1]
             dist += check_dist_uno(near_places_finish[start])
@@ -473,27 +476,13 @@ def trip_forming(metro, categories):
         i = start 
         iter = [0, 0, 0, 0]
         for j in range(4):
-            iter[0] = i
-            if i == 0:
-                iter[1] = 1
-                iter[2] = 2
-                iter[3] = 3
-            if i == 1:
-                iter[1] = 2
-                iter[2] = 3
-                iter[3] = 0
-            if i == 2:
-                iter[1] = 3
-                iter[2] = 0
-                iter[3] = 1
-            if i == 3:
-                iter[1] = 0
-                iter[2] = 1
-                iter[3] = 2
-        
+            for c in range(4):
+                iter[c] = (i + c)%4
+
             if (near_places[iter[1]] != []) and (iter[1] != end) and (iter[0] != end) and ((near_places[iter[0]] != [])):
                 dist += check_dist_double(near_places[iter[0]], near_places[iter[1]])
-            elif ((near_places[iter[2]] != []) ) and (iter[2] != end) and (iter[1] != end) and (iter[0] != end) and (near_places[iter[1]] == []) and (near_places[iter[0]] != []):
+            elif ((near_places[iter[2]] != []) ) and (iter[2] != end) and (iter[1] != end) and (
+                iter[0] != end) and (near_places[iter[1]] == []) and (near_places[iter[0]] != []):
                 dist += check_dist_double(near_places[iter[0]], near_places[iter[2]])
             elif (iter[1] == end) and (near_places[iter[0]] != []):
                 dist += check_dist_double(near_places[iter[0]], near_places_finish[iter[1]])
@@ -712,6 +701,7 @@ def places_near_with_metro(places, near_stations, metro, number_of_places, categ
      # подбор мест с нужной станцией метро или соседними с ней станциями
 
     places_in_trip = []
+    another_places = []
     for i in places:
         print('places')
         print(i)
@@ -723,7 +713,7 @@ def places_near_with_metro(places, near_stations, metro, number_of_places, categ
             for j in range(1, len(near_stations)):
                 if i.metrostation == near_stations[j][0] and i not in places_in_trip:
                     places_in_trip.append(i)
-    if len(places_in_trip) < number_of_places:
+    if len(places_in_trip) < number_of_places and (categorys != 'landmark') and (categorys != 'park'):
         another_places = mPlace.objects.filter(category=categorys)
         for i in another_places:
             if i.metrostation == metro:
@@ -785,5 +775,16 @@ def sort_overthetop(place, station, count):
         near_places.append(near_place)
     near_places = sorted(near_places, key=lambda x: x[1])
     for i in range(count):
-        places.append(near_places[i][0])
+        if len(near_places) > i:
+            places.append(near_places[i][0])
+        else:
+            break
+        
     return(places)
+
+def limit(places, number, near_stations, metro, station, category):
+    if len(places) > number:
+        r = sort_overthetop([places_near_with_metro(places, near_stations, metro, number, category)], station, number)
+    else:
+        r = places_near_with_metro(places, near_stations, metro, number, category)
+    return(r)
