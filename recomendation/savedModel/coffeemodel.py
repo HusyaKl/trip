@@ -18,10 +18,11 @@ import django
 django.setup()
 from recomendation.models import Mark
 
-con = sqlite3.connect("db.sqlite3")
-cs = pd.read_sql("SELECT * FROM recomendation_mark WHERE category='coffee_shop'", con)
+'''con = sqlite3.connect("db.sqlite3")
+cs = pd.read_sql("SELECT * FROM recomendation_mark WHERE category='coffee_shop'", con)'''
+cs = pd.DataFrame(list(Mark.objects.filter(category='coffee_shop').values()))
 cs = cs.drop(columns='category')
-print(cs)
+
 
 '''cs = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/dataset1.csv')'''
 rs = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/restaurants_for_model.csv')
@@ -81,7 +82,7 @@ class CoffeeshopsRecomendation(object):
     similar_method = pd.DataFrame()
     for method, rating in place_reduction_user:
       app = self.get_place_recommendation(method, rating, user)
-      similar_method = similar_method.append(app, ignore_index=True)
+      similar_method = pd.concat([similar_method, app], ignore_index=True)
     return similar_method.sum().sort_values(ascending=False)
 
 coffee = CoffeeshopsRecomendation(cs)
