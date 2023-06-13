@@ -1,11 +1,10 @@
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseNotFound
 from django.shortcuts import redirect
 from markupsafe import re
 from .models import Account
 from django.contrib import auth
 from django.views.decorators.csrf import csrf_exempt
 import django
-
 
 
 def create_user(request):
@@ -18,12 +17,14 @@ def create_user(request):
 def sign_in(request):
     email = request.POST['email']
     password = request.POST['password']
-    user = auth.authenticate(request, email=email, password=password)
+    print(email)
+    print(password)
+    user = auth.authenticate(request, username=email, password=password)
     if user is not None:
         auth.login(request, user)
         return HttpResponse('200')
     else:
-        return HttpResponse('404')
+        return HttpResponseNotFound('404')
 
 def current_user(request):
     if not request.user.is_authenticated:

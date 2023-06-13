@@ -3,3 +3,4 @@ import recomendation.models
 
 # Register your models here.
 admin.site.register(recomendation.models.Place)
+admin.site.register(recomendation.models.Mark)

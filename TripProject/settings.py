@@ -75,7 +75,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'TripProject.wsgi.application'
 
-CSRF_TRUSTED_ORIGINS = ['http://192.168.1.65']
+CSRF_TRUSTED_ORIGINS = ['http://192.168.1.66']
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -130,3 +130,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+

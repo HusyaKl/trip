@@ -15,25 +15,27 @@ from dataclasses import dataclass
 import pandas
 from django.views.decorators.csrf import csrf_exempt
 from recomendation.models import Place as mPlace
+from recomendation.models import Mark
 from progress.bar import Bar
 from geopy.distance import geodesic
 from openrouteservice import Client
 import requests
 from yandex_geocoder import Client as YaClient
+import csv
 
 api_key = '5b3ce3597851110001cf62486e78ddcacd9c43fb8852048902ff97a2'
 ors_client = Client(key=api_key)
 
 coffee = load(os.path.dirname(os.path.abspath(__file__)) +
-             '/savedModel/model.joblib')
+             '/savedModelcoffee.joblib')
 rest = load(os.path.dirname(os.path.abspath(__file__)) +
-             '/savedModel/rest.joblib')
+             '/savedModelrest.joblib')
 museum = load(os.path.dirname(os.path.abspath(__file__)) +
-             '/savedModel/museum.joblib')
+             '/savedModelmuseum.joblib')
 gallery = load(os.path.dirname(os.path.abspath(__file__)) +
-             '/savedModel/gallery.joblib')
+             '/savedModelgallery.joblib')
 bar = load(os.path.dirname(os.path.abspath(__file__)) +
-             '/savedModel/bar.joblib')
+             '/savedModelbar.joblib')
 
 def predict(request):
     user = "Яна"
@@ -253,6 +255,49 @@ def load_places_from_csv(request):
         return HttpResponse('OK: [200]')
     return HttpResponse('Error 403')
 
+def load(request):
+    with open(os.path.dirname(os.path.abspath(__file__))+'/dataset1.csv') as File:
+        reader = csv.DictReader(File)
+        i = 0
+        for row in reader:
+            try:
+                if i == 0:
+                    pass
+                else:
+                    marks = Mark(
+                        username = row['username'],
+                        place = row['place'],
+                        mark = row['mark'],
+                        category = 'coffee_shop'
+                    )
+                    marks.save()
+                i = i+1
+            except:
+                print('error')
+        
+    return HttpResponse('OK: [200]')
+
+@csrf_exempt
+def start_settings_of_like(request):
+    #добавляем пользователя и по несколько стартовых оценок (10 чеков самых популярных)
+    coffee_houses = ['Шоколадница', 'Волконский', 'ДаблБи', 'Surf Coffee', 'Cofix', 'Кофемания', 'Кофе Хауз', 'One Price Coffee', 'Skuratov', 'Правда кофе']
+    restaurants = ['Вареничная № 1', 'Frank by Баста', 'Maestrello', 'Грабли', 'Тануки', 'Джонджоли', 'Torro Grill', 'Высота 5642', 'Хачапури и вино', "Caffe Mandy's"]
+    bars = ['Мята Lounge', 	'Слёзы Берёзы', 'Брюгге', 'Meow Bar', 'Настоишная', 'ШашлыкоFF', 'Brasserie Lambic', 'Руки ВВерх!', 'Вокруг света', 'Козловица']
+    museums = ['Бункер-42', 'Ботанический сад МГУ имени М.В. Ломоносова Аптекарский огород',
+               'Государственный исторический музей', 'Государственный музей изобразительных искусств имени А.С. Пушкина', 
+               'Государственная Третьяковская галерея', 'Музей археологии Москвы', 'Музей советских игровых автоматов', 
+               'Галерея Элизиум', 'Яндекс Музей', "Cube. Moscow", 'Музей Эмоций',	'Медиацентр', 'Artplay']
+    user = request.POST['username']
+    for i in range(10):
+        check = request.POST['check'+f'{i}']
+        print('check'+f'{i}')
+        print(check)
+
+        if check == 'true':
+            Mark.objects.create(username = user, place = coffee_houses[i], mark = 5, category='coffee_shop')
+
+    return HttpResponse('OK: [200]')
+
 
 @csrf_exempt # TODO remove on release
 def analise(request):
@@ -273,24 +318,35 @@ def analise(request):
     if check == 'true':
         places.append('sight')
     metro_station = request.POST['metro']
+    user = request.POST['username']
     print(metro_station)
     metro = 'Третьяковская'
-    u = trip_forming(metro_station, places)
+    u = trip_forming(metro_station, places, user)
     return HttpResponse(u)
 
 #этот метод отвечает за методику формирования 3 маршрутов на выбор и обращается к trip_forming
 def trip_map(metro, places):
     pass
         
-
+def place_list(place_reduction_user, category):
+    my_list = []
+    for i in place_reduction_user:
+        if (i.category == category):
+            t = (i.place, i.mark)
+            my_list.append(t)
+    return(my_list)
+    
 #этот метод отвечает за сам алгоритм формирования маршрута
-def trip_forming(metro, categories):
+def trip_forming(metro, categories, user):
 
     # из request получаем current user(username)
-    # из бд получаем список оценок польхователя(следующие строки для теста пока)
-    place_reduction_user = [('Волконский', 3), ('Cofix', 2), ('Циники', 4),
-                            ('Эрна', 5)]
-    user = 'Яна'
+    # из бд получаем список оценок польхователя
+   
+    place_reduction_user = Mark.objects.filter(username=user)
+    coffee_reduction_user = place_list(place_reduction_user, 'coffee_shop')
+    rest_reduction_user = place_list(place_reduction_user, 'restaurant')
+    bar_reduction_user = place_list(place_reduction_user, 'bar')
+    museum_reduction_user = place_list(place_reduction_user, 'museum')
 
     stations = metro_api()
     station = coordinates_of_station(metro, stations)
@@ -299,7 +355,7 @@ def trip_forming(metro, categories):
     y_coordinate = station['lng']
     near_stations = near_metrostations(
         stations, station['lat'], station['lng'])
-    
+    print(near_stations)
     places_in_trip = []
     if (len(categories) == 1) and ('sight' in categories): #человек выбрал что хочет только гулять - маршрут парк и до 6 достопримечательностей
         landmarks = mPlace.objects.filter(category='landmark')
@@ -346,9 +402,11 @@ def trip_forming(metro, categories):
             places_in_trip.append(limit(rests, number_places, near_stations, metro, station, 'restaurant'))
 
         if 'coffee_shop' in categories:
-            coffees = model_predict(coffee, user, place_reduction_user)
+            coffees = model_predict(coffee, user, coffee_reduction_user)
             coffees = add_places(coffees, station)
+            print(coffees)
             places_in_trip.append(limit(coffees, number_places, near_stations, metro, station, 'coffee_shop'))
+            print(places_in_trip)
             print('thats ok')
             print(places_in_trip)
 
@@ -374,7 +432,7 @@ def trip_forming(metro, categories):
         print(places)
         near_places = [[], [], [], []]
         print(len(near_places))
-        
+        #добавить лимит
         for i in range(len(near_places)):
             near_places[i] = near_all_places(places[i], near_places[i], station)
         print(near_places)
@@ -783,8 +841,8 @@ def sort_overthetop(place, station, count):
     return(places)
 
 def limit(places, number, near_stations, metro, station, category):
-    if len(places) > number:
-        r = sort_overthetop([places_near_with_metro(places, near_stations, metro, number, category)], station, number)
-    else:
-        r = places_near_with_metro(places, near_stations, metro, number, category)
+    #if len(places) > number:
+    r = sort_overthetop([places_near_with_metro(places, near_stations, metro, number, category)], station, number)
+    #else:
+        #r = places_near_with_metro(places, near_stations, metro, number, category)
     return(r)

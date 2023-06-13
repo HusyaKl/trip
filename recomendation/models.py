@@ -38,6 +38,7 @@ class Mark(models.Model):
     username = models.CharField(max_length=100)
     place = models.CharField(max_length=100)
     mark = models.SmallIntegerField(choices=MARKS)
+    category = models.CharField(max_length=100, default='')
 
 class Review(models.Model):
     MARKS = [
@@ -48,8 +49,10 @@ class Review(models.Model):
         (5, '5')
     ]
 
-    username = models.ForeignKey(Account, on_delete=models.CASCADE)
-    place = models.ForeignKey(Place, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
+    place_id = models.ForeignKey(Place, on_delete=models.CASCADE, null=True)
+    username = models.CharField(max_length=100, default='')
+    place = models.CharField(max_length=100, default='')
     mark = models.SmallIntegerField(choices=MARKS)
     body = models.TextField(default='')
 

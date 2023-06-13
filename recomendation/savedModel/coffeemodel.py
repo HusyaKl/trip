@@ -6,9 +6,24 @@ import random
 from  sklearn.metrics.pairwise import pairwise_distances
 from sklearn.metrics.pairwise import cosine_similarity
 import os
+import sqlite3
+import sys
+from django.conf import settings
+import joblib
+from TripProject.settings import BASE_DIR
 
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'TripProject.settings')
 
-cs = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/dataset1.csv')
+import django
+django.setup()
+from recomendation.models import Mark
+
+con = sqlite3.connect("db.sqlite3")
+cs = pd.read_sql("SELECT * FROM recomendation_mark WHERE category='coffee_shop'", con)
+cs = cs.drop(columns='category')
+print(cs)
+
+'''cs = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/dataset1.csv')'''
 rs = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/restaurants_for_model.csv')
 br = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/bars_for_model.csv')
 ms = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/museums_for_model.csv')
@@ -17,7 +32,7 @@ gl = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/galleries_for_mode
 def run_up(df):
   threshold = 3
   value_counts = df['username'].value_counts() 
-  to_remove = value_counts[value_counts <= threshold].index
+  to_remove = value_counts[value_counts < threshold].index
   df['username'].replace(to_remove, np.nan, inplace=True)
   df.dropna()
 
@@ -74,3 +89,10 @@ rest = CoffeeshopsRecomendation(rs)
 bar = CoffeeshopsRecomendation(br)
 museum = CoffeeshopsRecomendation(ms)
 gallery = CoffeeshopsRecomendation(gl)
+
+joblib.dump(coffee, os.path.dirname(os.path.abspath(__file__)) +'coffee.joblib')
+joblib.dump(rest, os.path.dirname(os.path.abspath(__file__)) +
+             'rest.joblib')
+joblib.dump(bar, os.path.dirname(os.path.abspath(__file__)) +'bar.joblib')
+joblib.dump(museum, os.path.dirname(os.path.abspath(__file__)) +'museum.joblib')
+joblib.dump(gallery, os.path.dirname(os.path.abspath(__file__)) +'gallery.joblib')
