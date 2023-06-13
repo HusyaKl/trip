@@ -7,7 +7,7 @@ function Home(props) {
   const [res, setRes] = useState('false');
 
   useEffect(() => {
-    fetch('http://192.168.1.65:8000/api/current_user/', {
+    fetch('http://192.168.1.66:8000/api/current_user/', {
       method: "GET",
     })
     .then(resp => resp.text())

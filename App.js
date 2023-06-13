@@ -111,7 +111,18 @@ function App() {
         <Stack.Screen name="Profile" component={Profile} options={{ ...Styles, title: "Ваш профиль" }} />
         <Stack.Screen name="Login" component={Login} options={{ ...Styles, title: "", headerLeft: () => (<Text>   </Text>) }} />
         <Stack.Screen name="SignUp" component={SignUp} options={{ ...Styles, title: "" }} />
-        <Stack.Screen name="Trip" component={Trip} options={{ ...Styles, title: "Состав маршрута" }} />
+        <Stack.Screen name="Trip" component={Trip} options={{ ...Styles, title: "Состав маршрута",
+            headerRight: () => {
+              const navigation = useNavigation();
+              return (
+                <TouchableOpacity
+                  title="ADD"
+                  onPress={() => navigation.navigate("Settings")}
+                >
+                  <Icon style={{ marginRight: 20 }} name="add-location-alt" />
+                </TouchableOpacity>
+              );
+            }, }} />
       </Stack.Navigator>
     </View>
 

@@ -1,8 +1,39 @@
-import React from 'react';
-import {StyleSheet, Text, View, Image} from 'react-native'
+import React, {useState} from 'react';
+import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native'
 import {Card} from 'react-native-paper'
 
 function Place(props) {
+  const [defaultRating, setdefaultRating] = useState(2)
+  const [maxRating, setmaxRating] = useState([1,2,3,4,5])
+  const starFilled = 'https://raw.githubusercontent.com/tranhonghan/images/main/star_corner.png'
+  const starCorner = 'https://raw.githubusercontent.com/tranhonghan/images/main/star_filled.png'
+
+  const CustomRating = () => {
+    return (
+      <View style={styles.ratingbar}>
+        {
+            maxRating.map((item, key) => {
+              return (
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  key={item}
+                  onPress = {() => setdefaultRating(item-1)}
+                >
+                  <Image
+                  style={styles.star}
+                  source={
+                    item <= defaultRating
+                    ? {uri: starFilled}
+                    : {uri: starCorner}
+                  }
+                  />
+                </TouchableOpacity>
+              )
+            })
+        }
+      </View>
+    )
+  }
 
   const {id, name, address, metro} = props.route.params.data
   return (
@@ -10,10 +41,11 @@ function Place(props) {
                 <Card style={styles.Card}>
                   <Text style={styles.loginText}>{name}</Text>
                   <Text style={styles.categoryText}>Кофейня</Text>
-                  <Image source={{uri: 'https://i.pinimg.com/736x/fa/d4/47/fad447ab812f22b240b1df914158ce12--chocolate-cups-art-google.jpg'} }  style={{ width: 200, height: 200, borderRadius: 10, alignSelf:'center'}}/>
-                  <Text style={styles.settingText}>Здесь будет потрясающее описание местаю Это интересная кофейня или очень вкусный ресторан</Text>
+                  <Image source={{uri: 'https://pro-dachnikov.com/uploads/posts/2023-01/1673352795_pro-dachnikov-com-p-shokoladnitsa-foto-interera-50.jpg'} }  style={{ width: 200, height: 200, borderRadius: 10, alignSelf:'center'}}/>
+                  <Text style={styles.settingText}>Цена чашки капучино: 239–274₽,  Средний счёт: 500 ₽,                Кухня: европейская</Text>
                   <Text style={styles.settingText}>{address}</Text>
                   <Text style={styles.settingText}>{metro}</Text>
+                  <CustomRating/>
       
       </Card>
       </View>
@@ -61,5 +93,16 @@ const styles = StyleSheet.create({
       color: "#618889",
       marginBottom: "7%"
     },
+    star: {
+      width: 40,
+      height: 40,
+      resizeMode: 'cover'
+    },
+    ratingbar: {
+      flexDirection: 'row',
+      alignItems: "center",
+      justifyContent: "center",
+      
+    }
   })
 export default Place;

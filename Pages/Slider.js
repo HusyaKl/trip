@@ -66,8 +66,8 @@ function ImageSlider(props) {
 
                         <TouchableOpacity style={[styles.gridItem]} onPress = {()=> props.navigation.navigate("Bars")}>
                             <ImageBackground style={styles.fon} source={require("../assets/pytno.png")}/>
-                            <Image style={styles.icons} source={require("../assets/bars.png")}/>
-                            <Text>Бары</Text>
+                            <Image style={styles.icons} source={require("../assets/land.png")}/>
+                            <Text>Памятники</Text>
                         </TouchableOpacity>
                     
                     </View>

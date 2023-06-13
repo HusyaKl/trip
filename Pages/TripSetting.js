@@ -33,14 +33,23 @@ function Setting() {
     const [MyUrl, setMyUrl] = useState([{title: "First"}])
     const [MyData, setMyData] = useState([{title: "First"}])
     const SettingFunc = () => {
-      let formData = new FormData();
+        let user = new FormData();
+        user.append('username', username);
+        fetch('http://192.168.1.66:8000/api/current_user/', {
+            method: "POST",
+            body: user
+        })
+        .then(resp => resp.text())
+        .then(data => {
+          let formData = new FormData();
           formData.append('check1', check1);
           formData.append('check2', check2);
           formData.append('check3', check3);
           formData.append('check4', check4);
           formData.append('check5', check5);
           formData.append('metro', metro);
-          fetch('http://192.168.1.65:8000/api/analise/', {
+          formData.append('username', username)
+          fetch('http://192.168.1.66:8000/api/analise/', {
               method: "POST",
               
               body: formData
@@ -55,7 +64,8 @@ function Setting() {
 
           })
           .catch(error => console.log(error))
-          
+        })
+        .catch(error => console.log(error))
         }
 
     const [check1, setChecked1] = useState(false);
@@ -64,6 +74,7 @@ function Setting() {
     const [check4, setChecked4] = useState(false);
     const [check5, setChecked5] = useState(false);
     const [metro, setMetro] = useState('');
+    const [username, setUsername] = useState('');
 
     return (
             <View style={styles.container}>

@@ -14,9 +14,8 @@ function Trip(props) {
   const renderData = (item) => {
     return(
         <Card style={styles.card} onPress ={() => clickedItem(item)}>
-            <Text style={{color: "#000", fontFamily: "Husya", textAlign: 'center', marginTop: "2%", fontSize: 20, width: 200, alignSelf: 'center'}}>{item.name}</Text>
-            <Text style={{color: "#618889", fontFamily: "Husya", textAlign: 'center',fontSize: 16, width: 140, alignSelf: 'center'}}>Кофейня</Text>
-            <Text style={{color: "#eaf5db", fontFamily: "Husya", textAlign: 'center', marginTop: "1%", fontSize: 16, width: 250}}>{item.address}</Text>
+            <Text style={{color: "#000", fontFamily: "Husya", textAlign: 'center', marginTop: "2%", fontSize: 20, width: 250, alignSelf: 'center'}}>{item.name}</Text>
+            <Text style={{color: "#eaf5db", fontFamily: "Husya", textAlign: 'center', marginTop: "1%",marginBottom: "1%", fontSize: 16, width: 250, alignSelf: 'center'}}>{item.address}</Text>
         </Card>
     ); 
   }
@@ -36,7 +35,12 @@ function Trip(props) {
       <TouchableOpacity style={styles.loginBtn} onPress={() => Linking.openURL(url)}
                   name="Save"
                   >
-                  <Text style={styles.BtnTxt} >Ваш маршрут на карте</Text>
+                  <Text style={styles.BtnTxt} >Ваш маршрут на Яндекс карте</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.loginBtn} onPress={() => Linking.openURL(url)}
+                  name="Save"
+                  >
+                  <Text style={styles.BtnTxt} >Ваш маршрут на Google карте</Text>
       </TouchableOpacity>
     </View>
     
@@ -61,17 +65,17 @@ const styles = StyleSheet.create({
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: "#618889",
-      marginBottom: "20%"
+      marginBottom: "2%"
     },
 
     BtnTxt: {
-      fontFamily: 'Husya'  
+      fontFamily: 'Husya'
     },
     card:{
       alignItems: "center",
-      height: 100,
+      height: 110,
       width: 300,
       backgroundColor: '#8cadae',
-      marginTop: "5%",
+      marginTop: "10%",
     },
   })

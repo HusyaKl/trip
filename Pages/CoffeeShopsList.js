@@ -10,7 +10,7 @@ function CoffeeShops(props) {
     const [data, setData] = useState([{}])
     const [page, setPage] = useState(1)
     useEffect(() => {
-        fetch(`http://192.168.1.65:8000/api/predict/?page=${page}`, {
+        fetch(`http://192.168.1.66:8000/api/predict/?page=${page}`, {
           method: "GET"
         })
 
