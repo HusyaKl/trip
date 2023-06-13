@@ -24,7 +24,7 @@ cs = pd.read_sql("SELECT * FROM recomendation_mark WHERE category='coffee_shop'"
 cs = cs.drop(columns='category')
 
 
-cs = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/dataset1.csv')
+'''cs = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/dataset1.csv')'''
 rs = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/restaurants_for_model.csv')
 br = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/bars_for_model.csv')
 ms = pd.read_csv(os.path.dirname(os.path.abspath(__file__))+'/museums_for_model.csv')
