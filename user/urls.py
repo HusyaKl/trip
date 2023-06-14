@@ -8,6 +8,7 @@ urlpatterns = [
     path('current_user/', views.current_user),
     path('get_csrf/', views.csrftoken),
     path('logout/', views.logout),
+    path('gitpull/', views.gitpull),
 ]
    
   

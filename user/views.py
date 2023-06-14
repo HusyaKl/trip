@@ -5,7 +5,7 @@ from .models import Account
 from django.contrib import auth
 from django.views.decorators.csrf import csrf_exempt
 import django
-
+import os
 
 def create_user(request):
     email = request.POST['email']
@@ -48,3 +48,6 @@ def csrftoken(request):
         return JsonResponse(response)
     else:
         return HttpResponse('403')
+def gitpull(request):
+    os.system('cd /home/ubuntu/trip/; git pull')
+    os.system('sudo systemctl restart trips.service')
